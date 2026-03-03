@@ -1,8 +1,11 @@
 :root {
   --primary-red: #e60012;
-  --body-white: #f5f5f5;
-  --dark-gray: #333;
+  --dark-red: #b5000e;
+  --chrome-light: #ffffff;
+  --chrome-mid: #a1a1a1;
+  --chrome-dark: #777;
   --glass-shine: rgba(255, 255, 255, 0.4);
+  --machine-width: 300px;
 }
 
 * {
@@ -12,43 +15,56 @@
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f0f0f0;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  background-color: #e0e0e0;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  padding: 20px;
 }
 
 .container {
   text-align: center;
+  perspective: 1000px;
 }
 
 /* 가챠 기계 본체 */
 .gacha-machine {
-  width: 280px;
+  width: var(--machine-width);
   margin: 0 auto 30px;
   position: relative;
+  transform: rotateX(5deg);
+  filter: drop-shadow(0 20px 30px rgba(0,0,0,0.2));
 }
 
-/* 캡슐 보관함 (구) */
+/* 상단 투명 돔 (Globe) */
 .globe-container {
-  width: 280px;
+  width: var(--machine-width);
   height: 280px;
-  background-color: white;
-  border: 8px solid var(--primary-red);
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%);
+  border: 4px solid rgba(255,255,255,0.3);
   border-radius: 50% 50% 10px 10px;
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 -20px 40px rgba(0,0,0,0.1);
   z-index: 2;
+  backdrop-filter: blur(1px);
+  box-shadow: inset 0 10px 30px rgba(255,255,255,0.5), inset 0 -10px 20px rgba(0,0,0,0.1);
 }
 
-.globe {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%);
+/* 돔 상단 반사광 */
+.globe-container::after {
+  content: '';
+  position: absolute;
+  top: 15%;
+  left: 15%;
+  width: 60px;
+  height: 30px;
+  background: white;
+  filter: blur(15px);
+  border-radius: 50%;
+  opacity: 0.6;
+  transform: rotate(-30deg);
 }
 
 .inner-capsules {
@@ -59,95 +75,149 @@ body {
   left: 0;
 }
 
-/* 기계 몸체 */
+/* 기계 몸체 (Red Body) */
 .machine-body {
-  width: 280px;
-  height: 220px;
-  background-color: var(--primary-red);
-  border-radius: 0 0 20px 20px;
+  width: var(--machine-width);
+  height: 260px;
+  background: linear-gradient(to right, 
+    #c40000 0%, 
+    #ff1a1a 15%, 
+    #e60012 30%, 
+    #e60012 70%, 
+    #b5000e 85%, 
+    #8a0000 100%
+  );
+  border-radius: 10px 10px 30px 30px;
   position: relative;
   padding: 20px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-  border: 4px solid #b5000e;
+  box-shadow: 
+    inset 0 2px 2px rgba(255,255,255,0.5),
+    0 10px 20px rgba(0,0,0,0.3);
+  border: 1px solid #990000;
+  margin-top: -5px;
 }
 
 .logo {
   color: white;
-  font-weight: bold;
-  font-size: 24px;
-  margin-bottom: 15px;
-  letter-spacing: 2px;
+  font-weight: 900;
+  font-size: 28px;
+  margin-bottom: 25px;
+  letter-spacing: 4px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  font-family: 'Arial Black', sans-serif;
 }
 
-/* 레버 영역 */
+/* 코인 투입구 영역 */
+.coin-slot-area {
+  position: absolute;
+  right: 30px;
+  top: 60px;
+  width: 40px;
+  height: 60px;
+  background: linear-gradient(145deg, #ddd, #999);
+  border-radius: 5px;
+  border: 2px solid #777;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+}
+
+.coin-slot {
+  width: 4px;
+  height: 30px;
+  background: #222;
+  border-radius: 2px;
+  box-shadow: inset 1px 1px 2px rgba(255,255,255,0.2);
+}
+
+.price-tag {
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  margin-top: 5px;
+}
+
+/* 레버 영역 (Chrome Handle) */
 .handle-area {
-  width: 120px;
-  height: 120px;
-  background-color: white;
+  width: 130px;
+  height: 130px;
+  background: radial-gradient(circle, #eee 0%, #bbb 70%, #999 100%);
   border-radius: 50%;
   margin: 0 auto;
-  border: 6px solid #ccc;
+  border: 4px solid #888;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 
+    inset 0 5px 10px rgba(0,0,0,0.2),
+    0 5px 15px rgba(0,0,0,0.3);
 }
 
 .handle {
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   position: relative;
   cursor: pointer;
-  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.6s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  z-index: 5;
 }
 
+/* T자형 크롬 핸들 */
 .handle-bar {
   width: 100%;
-  height: 15px;
-  background-color: #555;
+  height: 20px;
+  background: linear-gradient(to bottom, #fff 0%, #ccc 40%, #888 100%);
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
 .handle-bar::before {
   content: '';
-  width: 15px;
-  height: 80px;
-  background-color: #555;
+  width: 20px;
+  height: 100px;
+  background: linear-gradient(to right, #fff 0%, #ccc 40%, #888 100%);
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
   border-radius: 10px;
+  box-shadow: 4px 0 6px rgba(0,0,0,0.3);
 }
 
 .handle-center {
-  width: 25px;
-  height: 25px;
-  background-color: #333;
+  width: 35px;
+  height: 35px;
+  background: radial-gradient(circle at 30% 30%, #fff, #999);
   border-radius: 50%;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  border: 2px solid #777;
+  border: 2px solid #888;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.4);
 }
 
-/* 출구 */
+/* 출구 (Exit Slot) */
 .exit-slot {
-  width: 80px;
-  height: 60px;
-  background-color: #333;
+  width: 100px;
+  height: 70px;
+  background: #1a1a1a;
   position: absolute;
-  bottom: -15px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  border-radius: 10px 10px 5px 5px;
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: inset 0 5px 10px rgba(0,0,0,0.5);
+  box-shadow: 
+    inset 0 10px 20px rgba(0,0,0,0.8),
+    0 2px 2px rgba(255,255,255,0.2);
+  border: 2px solid #444;
 }
 
 .chute {
@@ -156,142 +226,154 @@ body {
   position: relative;
 }
 
+/* 출구 플랩 */
+.chute::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40%;
+  background: linear-gradient(to bottom, #333, #111);
+  border-bottom: 2px solid #444;
+}
+
 /* 바닥 지지대 */
 .machine-base {
-  width: 260px;
-  height: 15px;
-  background-color: #555;
-  margin: -5px auto 0;
-  border-radius: 0 0 10px 10px;
+  width: 320px;
+  height: 25px;
+  background: linear-gradient(to bottom, #444, #111);
+  margin: -10px auto 0;
+  border-radius: 5px 5px 15px 15px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.4);
 }
 
-/* 캡슐 스타일 (반투명 플라스틱 느낌) */
+/* 캡슐 스타일 */
 .capsule {
-  width: 40px;
-  height: 40px;
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
   position: absolute;
-  background: linear-gradient(to bottom, 
-      rgba(255,255,255,0.7) 0%, 
-      rgba(255,255,255,0.3) 50%, 
-      var(--capsule-color) 50.1%, 
+  background: linear-gradient(135deg, 
+      rgba(255,255,255,0.8) 0%, 
+      rgba(255,255,255,0.2) 45%, 
+      var(--capsule-color) 50%, 
       var(--capsule-color) 100%);
   box-shadow: 
-      inset 0 4px 6px rgba(255,255,255,0.6),
-      inset 0 -4px 6px rgba(0,0,0,0.15),
-      0 2px 4px rgba(0,0,0,0.2);
-  backdrop-filter: blur(1px);
+      inset 0 5px 8px rgba(255,255,255,0.5),
+      inset 0 -5px 8px rgba(0,0,0,0.2),
+      0 4px 8px rgba(0,0,0,0.3);
 }
 
-/* 내부 캡슐들 위치용 */
-.inner-capsules .capsule {
-  opacity: 0.9;
+/* 캡슐 반사광 */
+.capsule::after {
+  content: '';
+  position: absolute;
+  top: 15%;
+  left: 15%;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.6;
 }
 
-/* 떨어지는 캡슐 애니메이션 */
 .falling-capsule {
   position: absolute;
   left: 50%;
-  top: -40px;
+  top: -50px;
   transform: translateX(-50%);
   z-index: 10;
-  animation: drop 0.8s forwards ease-in;
+  animation: drop 0.8s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 @keyframes drop {
-  0% { top: -40px; transform: translateX(-50%) rotate(0deg); }
-  50% { top: 20px; transform: translateX(-50%) rotate(180deg); }
-  100% { top: 70px; transform: translateX(-50%) rotate(360deg); opacity: 0; }
+  0% { top: -50px; transform: translateX(-50%) rotate(0deg); }
+  60% { top: 30px; transform: translateX(-50%) rotate(200deg); }
+  100% { top: 80px; transform: translateX(-50%) rotate(360deg); opacity: 0; }
 }
 
-/* 레버 회전 애니메이션 */
 .spin {
-  transform: rotate(360deg) !important;
+  transform: rotate(720deg) !important;
 }
 
 /* 컨트롤 영역 */
 .controls {
-  margin-top: 20px;
+  margin-top: 30px;
 }
 
 button {
-  padding: 12px 30px;
-  font-size: 18px;
-  font-weight: bold;
-  background-color: var(--primary-red);
+  padding: 15px 40px;
+  font-size: 20px;
+  font-weight: 900;
+  background: linear-gradient(to bottom, #ff4d4d, #b5000e);
   color: white;
-  border: none;
+  border: 1px solid #8a0000;
   border-radius: 50px;
   cursor: pointer;
-  box-shadow: 0 4px #b5000e;
+  box-shadow: 0 6px 0 #8a0000, 0 8px 15px rgba(0,0,0,0.3);
   transition: all 0.1s;
+  text-transform: uppercase;
 }
 
 button:active {
-  box-shadow: 0 1px #b5000e;
-  transform: translateY(3px);
+  box-shadow: 0 2px 0 #8a0000, 0 4px 8px rgba(0,0,0,0.3);
+  transform: translateY(4px);
 }
 
 .instruction {
-  margin-top: 15px;
-  color: #666;
+  margin-top: 20px;
+  color: #444;
+  font-weight: 600;
+  text-shadow: 0 1px 1px white;
 }
 
-/* 제휴 문의 섹션 스타일 */
+/* 제휴 문의 섹션 */
 .contact-section {
-  margin-top: 50px;
-  padding: 30px;
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-  max-width: 400px;
+  margin-top: 60px;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 30px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  max-width: 450px;
   margin-left: auto;
   margin-right: auto;
+  border: 1px solid white;
 }
 
 .contact-section h3 {
-  margin-bottom: 20px;
-  color: var(--dark-gray);
+  margin-bottom: 25px;
+  color: #333;
+  font-size: 24px;
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .form-group input, 
 .form-group textarea {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #eee;
-  border-radius: 10px;
-  font-size: 14px;
-  transition: border-color 0.3s;
+  padding: 15px;
+  border: 2px solid #ddd;
+  border-radius: 15px;
+  font-size: 16px;
+  background: #fdfdfd;
+  transition: all 0.3s;
 }
 
 .form-group input:focus, 
 .form-group textarea:focus {
   outline: none;
   border-color: var(--primary-red);
-}
-
-.form-group textarea {
-  height: 100px;
-  resize: none;
+  box-shadow: 0 0 10px rgba(230,0,18,0.1);
 }
 
 .submit-btn {
   width: 100%;
-  background-color: #333 !important;
-  box-shadow: 0 4px #111 !important;
-}
-
-.submit-btn:active {
-  box-shadow: 0 1px #111 !important;
-}
-
-#form-status {
-  margin-top: 15px;
-  font-size: 14px;
+  background: linear-gradient(to bottom, #444, #111) !important;
+  box-shadow: 0 4px 0 #000 !important;
+  font-size: 18px;
 }
 
 /* 모달 스타일 */
@@ -303,36 +385,32 @@ button:active {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.7);
+  background-color: rgba(0,0,0,0.8);
+  backdrop-filter: blur(5px);
   justify-content: center;
   align-items: center;
 }
 
 .modal-content {
-  background-color: white;
-  padding: 40px;
-  border-radius: 20px;
+  background: white;
+  padding: 50px;
+  border-radius: 30px;
   text-align: center;
-  animation: pop-up 0.3s ease-out;
-}
-
-@keyframes pop-up {
-  from { transform: scale(0.5); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  box-shadow: 0 30px 60px rgba(0,0,0,0.5);
 }
 
 .capsule-large {
-  width: 100px;
-  height: 100px;
-  margin: 0 auto 20px;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 30px;
   border-radius: 50%;
-  background: linear-gradient(to bottom, 
-      rgba(255,255,255,0.7) 0%, 
-      rgba(255,255,255,0.3) 50%, 
-      var(--result-color) 50.1%, 
+  background: linear-gradient(135deg, 
+      rgba(255,255,255,0.9) 0%, 
+      rgba(255,255,255,0.3) 45%, 
+      var(--result-color) 50%, 
       var(--result-color) 100%);
   box-shadow: 
-      inset 0 10px 15px rgba(255,255,255,0.8),
-      inset 0 -10px 15px rgba(0,0,0,0.2),
-      0 5px 15px rgba(0,0,0,0.3);
+      inset 0 10px 20px rgba(255,255,255,0.8),
+      inset 0 -10px 20px rgba(0,0,0,0.2),
+      0 10px 30px rgba(0,0,0,0.4);
 }
