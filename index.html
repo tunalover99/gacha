@@ -40,6 +40,27 @@
             <button id="spin-button">레버 돌리기</button>
             <p class="instruction">레버를 클릭하거나 버튼을 눌러보세요!</p>
         </div>
+
+        <!-- 제휴 문의 섹션 -->
+        <div class="contact-section">
+            <h3>🤝 제휴 문의</h3>
+            <form action="https://formspree.io/f/xnjbkoko" method="POST" id="contact-form">
+                <div class="form-group">
+                    <input type="text" name="name" placeholder="성함/업체명" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" name="_replyto" placeholder="이메일 주소" required>
+                </div>
+                <div class="form-group">
+                    <textarea name="message" placeholder="문의 내용 (예: 가챠 기계 커스텀 제작 문의 등)" required></textarea>
+                </div>
+                <!-- 스팸 방지 및 리다이렉트 설정 (선택 사항) -->
+                <input type="hidden" name="_subject" value="가챠 시뮬레이터 제휴 문의">
+                
+                <button type="submit" class="submit-btn">문의 보내기</button>
+                <p id="form-status"></p>
+            </form>
+        </div>
     </div>
 
     <!-- 결과 모달 (선택 사항) -->
