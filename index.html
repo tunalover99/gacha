@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>반다이 가챠 시뮬레이터</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="gacha-machine">
+            <!-- 상단 캡슐 보관함 -->
+            <div class="globe-container">
+                <div class="globe">
+                    <div class="inner-capsules" id="inner-capsules">
+                        <!-- JS로 캡슐들이 채워집니다 -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 기계 몸체 -->
+            <div class="machine-body">
+                <div class="logo">BANDAI</div>
+                <div class="handle-area">
+                    <div class="handle" id="handle">
+                        <div class="handle-bar"></div>
+                        <div class="handle-center"></div>
+                    </div>
+                </div>
+                <div class="exit-slot">
+                    <div class="chute" id="chute"></div>
+                </div>
+            </div>
+            
+            <!-- 하단 지지대 -->
+            <div class="machine-base"></div>
+        </div>
+        
+        <div class="controls">
+            <button id="spin-button">레버 돌리기</button>
+            <p class="instruction">레버를 클릭하거나 버튼을 눌러보세요!</p>
+        </div>
+    </div>
+
+    <!-- 결과 모달 (선택 사항) -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <div id="capsule-result" class="capsule-large"></div>
+            <p id="result-text">캡슐을 획득했습니다!</p>
+            <button onclick="closeModal()">닫기</button>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
