@@ -376,41 +376,130 @@ button:active {
   font-size: 18px;
 }
 
-/* 모달 스타일 */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 100;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.8);
-  backdrop-filter: blur(5px);
+/* 캡슐 결과 컨테이너 */
+.capsule-result-container {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 30px;
+  position: relative;
+  display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.modal-content {
-  background: white;
-  padding: 50px;
-  border-radius: 30px;
-  text-align: center;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+/* 캡슐 절반 스타일 */
+.capsule-half {
+  width: 120px;
+  height: 60px;
+  position: absolute;
+  left: 15px;
+  transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 10;
 }
 
-.capsule-large {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto 30px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, 
-      rgba(255,255,255,0.9) 0%, 
-      rgba(255,255,255,0.3) 45%, 
-      var(--result-color) 50%, 
-      var(--result-color) 100%);
+.capsule-half.top {
+  top: 15px;
+  border-radius: 60px 60px 0 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%);
+  border: 1px solid rgba(255,255,255,0.5);
+  box-shadow: inset 0 5px 10px rgba(255,255,255,0.8);
+  transform-origin: bottom;
+}
+
+.capsule-half.bottom {
+  bottom: 15px;
+  border-radius: 0 0 60px 60px;
+  background: var(--result-color);
   box-shadow: 
-      inset 0 10px 20px rgba(255,255,255,0.8),
-      inset 0 -10px 20px rgba(0,0,0,0.2),
-      0 10px 30px rgba(0,0,0,0.4);
+    inset 0 -5px 10px rgba(0,0,0,0.2),
+    0 5px 15px rgba(0,0,0,0.3);
+  transform-origin: top;
+}
+
+/* 캡슐 열기 애니메이션 */
+.open .capsule-half.top {
+  transform: translateY(-60px) rotateX(-45deg);
+  opacity: 0.8;
+}
+
+.open .capsule-half.bottom {
+  transform: translateY(20px) rotateX(45deg);
+}
+
+/* 내부 종이 스타일 */
+.result-paper {
+  width: 100px;
+  height: 30px; /* 초기 상태 (접힘) */
+  background: white;
+  position: absolute;
+  z-index: 5;
+  transition: all 1s 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  opacity: 0;
+  border: 1px solid #ddd;
+}
+
+.open .result-paper {
+  height: 180px; /* 펼쳐진 상태 */
+  opacity: 1;
+  transform: translateY(-20px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.paper-content {
+  padding: 15px 10px;
+  text-align: center;
+  font-family: 'Arial', sans-serif;
+  opacity: 0;
+  transition: opacity 0.5s 0.8s;
+}
+
+.open .paper-content {
+  opacity: 1;
+}
+
+.paper-content h4 {
+  font-size: 14px;
+  color: #e60012;
+  margin-bottom: 5px;
+}
+
+.divider {
+  height: 1px;
+  background: #eee;
+  margin: 10px 0;
+}
+
+.paper-content p {
+  font-size: 12px;
+  color: #333;
+  margin: 5px 0;
+}
+
+.fold-line {
+  height: 1px;
+  border-top: 1px dashed #ddd;
+  position: absolute;
+  width: 100%;
+  left: 0;
+}
+
+.fold-line:nth-child(5) { top: 33.33%; }
+.fold-line:nth-child(6) { top: 66.66%; }
+
+/* 기존 모달 내용 수정 */
+.modal-content {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.modal-content > p, .modal-content > button {
+  background: white;
+  padding: 15px 30px;
+  border-radius: 50px;
+  margin: 10px;
+  display: inline-block;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }

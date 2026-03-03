@@ -71,10 +71,26 @@
         </div>
     </div>
 
-    <!-- 결과 모달 (선택 사항) -->
+    <!-- 결과 모달 -->
     <div id="result-modal" class="modal">
         <div class="modal-content">
-            <div id="capsule-result" class="capsule-large"></div>
+            <div id="capsule-result-container" class="capsule-result-container">
+                <!-- 캡슐 상단 -->
+                <div id="capsule-top" class="capsule-half top"></div>
+                <!-- 캡슐 하단 -->
+                <div id="capsule-bottom" class="capsule-half bottom"></div>
+                <!-- 내부 종이 -->
+                <div id="result-paper" class="result-paper">
+                    <div class="paper-content">
+                        <h4>Gacha Item</h4>
+                        <div class="divider"></div>
+                        <p id="item-name">축하합니다!</p>
+                        <p>레어 아이템 획득</p>
+                        <div class="fold-line"></div>
+                        <div class="fold-line"></div>
+                    </div>
+                </div>
+            </div>
             <p id="result-text">캡슐을 획득했습니다!</p>
             <button onclick="closeModal()">닫기</button>
         </div>

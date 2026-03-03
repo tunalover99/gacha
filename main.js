@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const spinButton = document.getElementById('spin-button');
     const chute = document.getElementById('chute');
     const modal = document.getElementById('result-modal');
-    const capsuleResult = document.getElementById('capsule-result');
     
     const colors = ['#ff5f5f', '#5fafff', '#5fff7f', '#ffff5f', '#af5fff', '#ffa500'];
     let isSpinning = false;
@@ -15,9 +14,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const capsule = document.createElement('div');
             capsule.className = 'capsule';
             
+            // 내부에 접힌 종이 추가
+            const tinyPaper = document.createElement('div');
+            tinyPaper.style.cssText = `
+                width: 20px;
+                height: 12px;
+                background: white;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                border-radius: 1px;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            `;
+            capsule.appendChild(tinyPaper);
+            
             // 랜덤 위치 및 색상
-            const left = Math.random() * 200 + 20;
-            const top = Math.random() * 180 + 40;
+            const left = Math.random() * 220 + 20;
+            const top = Math.random() * 200 + 40;
             const color = colors[Math.floor(Math.random() * colors.length)];
             const rotation = Math.random() * 360;
             
@@ -35,26 +49,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isSpinning) return;
         isSpinning = true;
 
-        // 레버 애니메이션
         handle.classList.add('spin');
         
-        // 내부 캡슐들 흔들기 효과
         const capsules = document.querySelectorAll('.inner-capsules .capsule');
         capsules.forEach(cap => {
             cap.style.transition = 'all 0.5s ease-in-out';
             cap.style.transform = `translate(${Math.random()*10-5}px, ${Math.random()*10-5}px) rotate(${Math.random()*360}deg)`;
         });
 
-        // 0.5초 후 캡슐 나옴
         setTimeout(() => {
             dropCapsule();
         }, 500);
 
-        // 1초 후 레버 상태 초기화
         setTimeout(() => {
             handle.classList.remove('spin');
             isSpinning = false;
-        }, 1000);
+        }, 1200);
     }
 
     // 3. 캡슐 떨어뜨리기
@@ -64,22 +74,46 @@ document.addEventListener('DOMContentLoaded', () => {
         fallingCap.className = 'capsule falling-capsule';
         fallingCap.style.setProperty('--capsule-color', color);
         
+        // 내부에 접힌 종이 추가
+        const tinyPaper = document.createElement('div');
+        tinyPaper.style.cssText = `
+            width: 20px;
+            height: 12px;
+            background: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 1px;
+        `;
+        fallingCap.appendChild(tinyPaper);
+        
         chute.appendChild(fallingCap);
 
-        // 애니메이션 완료 후 결과 표시
         setTimeout(() => {
             showResult(color);
             fallingCap.remove();
         }, 800);
     }
 
-    // 4. 결과 모달 표시
+    // 4. 결과 모달 표시 및 애니메이션
     function showResult(color) {
-        capsuleResult.style.setProperty('--result-color', color);
+        const capsuleBottom = document.getElementById('capsule-bottom');
+        const capsuleContainer = document.getElementById('capsule-result-container');
+        const resultPaper = document.getElementById('result-paper');
+
+        // 상태 초기화
+        capsuleBottom.style.setProperty('--result-color', color);
+        capsuleContainer.classList.remove('open');
+        
         modal.style.display = 'flex';
+
+        // 0.5초 후 캡슐 열기 및 종이 펼치기
+        setTimeout(() => {
+            capsuleContainer.classList.add('open');
+        }, 500);
     }
 
-    // 이벤트 리스너
     handle.addEventListener('click', spinGacha);
     spinButton.addEventListener('click', spinGacha);
 
@@ -127,7 +161,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 모달 닫기 (글로벌 함수)
 function closeModal() {
-    document.getElementById('result-modal').style.display = 'none';
+    const modal = document.getElementById('result-modal');
+    const capsuleContainer = document.getElementById('capsule-result-container');
+    capsuleContainer.classList.remove('open');
+    modal.style.display = 'none';
 }
