@@ -84,6 +84,47 @@ document.addEventListener('DOMContentLoaded', () => {
     spinButton.addEventListener('click', spinGacha);
 
     initCapsules();
+
+    // 5. 제휴 문의 폼 처리
+    const contactForm = document.getElementById('contact-form');
+    const formStatus = document.getElementById('form-status');
+
+    if (contactForm) {
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = new FormData(e.target);
+            
+            formStatus.textContent = '보내는 중...';
+            formStatus.style.color = '#666';
+
+            try {
+                const response = await fetch(e.target.action, {
+                    method: contactForm.method,
+                    body: data,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    formStatus.textContent = '성공적으로 전송되었습니다! 곧 연락드리겠습니다.';
+                    formStatus.style.color = 'green';
+                    contactForm.reset();
+                } else {
+                    const result = await response.json();
+                    if (Object.hasOwn(result, 'errors')) {
+                        formStatus.textContent = result.errors.map(error => error.message).join(", ");
+                    } else {
+                        formStatus.textContent = '오류가 발생했습니다. 나중에 다시 시도해주세요.';
+                    }
+                    formStatus.style.color = 'red';
+                }
+            } catch (error) {
+                formStatus.textContent = '네트워크 오류가 발생했습니다.';
+                formStatus.style.color = 'red';
+            }
+        });
+    }
 });
 
 // 모달 닫기 (글로벌 함수)
