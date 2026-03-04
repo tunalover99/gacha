@@ -15,13 +15,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const facePreview = document.getElementById('face-preview');
     const videoContainer = document.querySelector('.video-container');
 
-    // --- Face Recognition Model (BlazeFace) ---
-    let model;
-    async function loadModel() {
-        model = await blazeface.load();
+    // --- AI Models Loading ---
+    let faceModel;
+    let segmenter;
+
+    async function loadModels() {
+        // 1. Load BlazeFace for face detection
+        faceModel = await blazeface.load();
         console.log("BlazeFace Model Loaded");
+
+        // 2. Load Body Segmentation for background removal
+        const segmenterModel = bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation;
+        const segmenterConfig = {
+            runtime: 'mediapipe',
+            solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation',
+            modelType: 'general'
+        };
+        segmenter = await bodySegmentation.createSegmenter(segmenterModel, segmenterConfig);
+        console.log("Body Segmentation Model Loaded");
     }
-    loadModel();
+    loadModels();
 
     // --- State ---
     let capturedFaceDataUrl = null;
@@ -140,17 +153,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- AI Face Crop & Recognition Function ---
     async function processFaceImage(imgSource) {
-        if (!model) {
+        if (!faceModel || !segmenter) {
             alert("모델이 로드 중입니다. 잠시만 기다려 주세요.");
             return null;
         }
 
-        const predictions = await model.estimateFaces(imgSource, false);
-
+        // 1. Detect Face for cropping
+        const predictions = await faceModel.estimateFaces(imgSource, false);
         if (predictions.length === 0) {
             alert("얼굴을 찾을 수 없습니다. 정면을 응시해 주세요.");
             return null;
         }
+
+        // 2. Body Segmentation for background removal
+        const segmentation = await segmenter.segmentPeople(imgSource);
+        const foregroundMask = await bodySegmentation.toBinaryMask(segmentation);
 
         const face = predictions[0];
         const start = face.topLeft;
@@ -158,18 +175,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         const size = [end[0] - start[0], end[1] - start[1]];
 
         const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = 256;
-        tempCanvas.height = 256;
+        tempCanvas.width = imgSource.width || imgSource.videoWidth;
+        tempCanvas.height = imgSource.height || imgSource.videoHeight;
         const ctx = tempCanvas.getContext('2d');
 
-        // 배경을 투명하게 초기화 (확실히 하기 위함)
-        ctx.clearRect(0, 0, 256, 256);
+        // Draw original image
+        ctx.drawImage(imgSource, 0, 0);
+        const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+        const pixelData = imageData.data;
 
-        // 원형 마스크 생성 (얼굴만 남기기)
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(128, 128, 120, 0, Math.PI * 2); // 약간의 여유를 둠
-        ctx.clip();
+        // Apply segmentation mask (remove background)
+        for (let i = 0; i < foregroundMask.data.length; i++) {
+            if (foregroundMask.data[i] === 0) { // Background
+                pixelData[i * 4 + 3] = 0; // Transparent
+            }
+        }
+        ctx.putImageData(imageData, 0, 0);
+
+        // Final Crop to Face with Circle Mask
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = 256;
+        finalCanvas.height = 256;
+        const fctx = finalCanvas.getContext('2d');
+
+        fctx.beginPath();
+        fctx.arc(128, 128, 120, 0, Math.PI * 2);
+        fctx.clip();
 
         const margin = 0.3; 
         const sourceX = start[0] - size[0] * margin;
@@ -177,10 +208,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const sourceWidth = size[0] * (1 + margin * 2);
         const sourceHeight = size[1] * (1 + margin * 2);
 
-        ctx.drawImage(imgSource, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, 256, 256);
-        ctx.restore();
+        fctx.drawImage(tempCanvas, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, 256, 256);
 
-        return tempCanvas.toDataURL('image/png');
+        return finalCanvas.toDataURL('image/png');
     }
 
     // --- Face Capture UI Logic ---
@@ -204,7 +234,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             facePreview.style.backgroundImage = `url(${capturedFaceDataUrl})`;
             createSpheres();
             
-            // Stop camera
             const tracks = video.srcObject.getTracks();
             tracks.forEach(t => t.stop());
             videoContainer.style.display = 'none';
