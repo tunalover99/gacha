@@ -3,33 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>반다이 가챠 시뮬레이터 - 온라인 캡슐토이 체험 및 가이드</title>
-    <meta name="description" content="전 세계적으로 사랑받는 밴다이(BANDAI) 가챠폰을 온라인에서 무료로 시뮬레이션해보세요. 다양한 캡슐 토이 정보와 가이드도 함께 제공합니다.">
-    <meta name="keywords" content="밴다이, 가챠, 가샤폰, 시뮬레이터, 캡슐토이, 반다이, 가챠 머신, 온라인 가챠">
+    <title>PIXEL GACHA - Retro Face Simulator</title>
+    <meta name="description" content="2000년대 닌텐도 스타일의 레트로 가챠 시뮬레이터. 자신의 얼굴을 매핑한 특별한 가챠를 경험해보세요!">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5680068113267734"
-     crossorigin="anonymous"></script>
-    <meta name="google-adsense-account" content="ca-pub-5680068113267734">
-
-    <!-- Open Graph for Social Media -->
-    <meta property="og:title" content="반다이 가챠 시뮬레이터">
-    <meta property="og:description" content="고퀄리티 가챠 머신 시뮬레이션과 캡슐 토이 정보 사이트">
-    <meta property="og:type" content="website">
 </head>
 <body>
     <header class="main-header">
-        <h1>BANDAI Gacha Simulator</h1>
+        <h1>PIXEL GACHA</h1>
         <nav>
-            <a href="#machine">시뮬레이터</a>
-            <a href="#about">정보</a>
-            <a href="#guide">가이드</a>
-            <a href="#contact">문의</a>
+            <a href="#machine">PLAY</a>
+            <a href="#about">INFO</a>
+            <a href="#contact">CONTACT</a>
         </nav>
     </header>
 
     <div class="container">
+        <!-- Face Capture Section -->
+        <section class="face-capture-panel">
+            <h2 class="pixel-text">CAPTURE YOUR FACE</h2>
+            <div class="capture-controls">
+                <button id="enable-camera" class="retro-btn">ON CAMERA</button>
+                <button id="take-photo" class="retro-btn" style="display:none;">TAKE PHOTO</button>
+                <input type="file" id="upload-photo" accept="image/*" style="display:none;">
+                <button id="trigger-upload" class="retro-btn">UPLOAD PHOTO</button>
+            </div>
+            <div class="video-container" style="display:none;">
+                <video id="video" width="160" height="120" autoplay playsinline></video>
+                <canvas id="canvas" width="160" height="120" style="display:none;"></canvas>
+            </div>
+            <div id="face-preview-container" class="face-preview-container">
+                <div id="face-preview" class="face-preview"></div>
+                <p class="pixel-hint">얼굴을 등록하면 가챠에 나타납니다!</p>
+            </div>
+        </section>
+
         <section id="machine" class="machine-section">
             <div class="gacha-machine">
                 <!-- 상단 투명 돔 -->
@@ -41,10 +49,10 @@
                 
                 <!-- 기계 몸체 -->
                 <div class="machine-body">
-                    <div class="logo">BANDAI</div>
+                    <div class="logo">GACHA</div>
                     <div class="coin-slot-area">
                         <div class="coin-slot"></div>
-                        <div class="price-tag">500₩</div>
+                        <div class="price-tag">500</div>
                     </div>
                     <div class="handle-area">
                         <div class="handle" id="handle">
@@ -60,57 +68,37 @@
             </div>
             
             <div class="controls">
-                <button id="spin-button">레버 돌리기</button>
-                <p class="instruction">레버를 클릭하거나 버튼을 눌러보세요!</p>
+                <button id="spin-button" class="spin-btn">SPIN!</button>
+                <p class="instruction pixel-text">PUSH START BUTTON!</p>
             </div>
         </section>
 
-        <!-- 광고 영역 (AdSense Placeholder) -->
-        <div class="ad-container">
-            <p class="ad-label">ADVERTISEMENT</p>
-            <!-- 여기에 애드센스 광고 코드를 삽입하세요 -->
-        </div>
-
-        <!-- 정보 섹션 (고품질 콘텐츠) -->
-        <section id="about" class="content-section">
-            <h2>🇯🇵 밴다이 가챠(Gashapon)란 무엇인가요?</h2>
-            <p>'가샤폰(Gashapon)'은 밴다이가 상표권을 가진 캡슐 토이 브랜드입니다. '가샤'는 레버를 돌릴 때 나는 소리, '폰'은 캡슐이 나올 때 나는 소리를 의미합니다. 1977년 이후 밴다이는 전 세계에 수천 가지 이상의 정교한 피규어와 미니어처를 출시하며 성인들에게도 큰 인기를 끌고 있습니다.</p>
-            
-            <h3>왜 이 시뮬레이터를 사용하나요?</h3>
-            <ul>
-                <li><strong>확률 체험</strong>: 실제 가챠와 유사한 확률을 미리 경험해볼 수 있습니다.</li>
-                <li><strong>수집 욕구 충족</strong>: 오프라인 매장에 가기 전, 원하는 아이템이 나올 때까지의 기대감을 즐길 수 있습니다.</li>
-                <li><strong>무료 체험</strong>: 실제 코인 없이도 밴다이의 감성을 느낄 수 있도록 디자인되었습니다.</li>
-            </ul>
+        <!-- 정보 섹션 -->
+        <section id="about" class="content-section pixel-border">
+            <h2 class="pixel-text">ABOUT PIXEL GACHA</h2>
+            <p>이곳은 2000년대 클래식 닌텐도 게임의 감성을 담은 특별한 가챠 시뮬레이터입니다. </p>
+            <p><strong>페이스 매핑 기능</strong>: 자신의 얼굴을 캡처하여 가챠 캡슐에 입혀보세요. 마치 '페이스 레이더즈'처럼 당신의 얼굴이 캡슐이 되어 쏟아집니다!</p>
         </section>
 
-        <section id="guide" class="content-section">
-            <h2>📖 시뮬레이터 이용 가이드</h2>
-            <p>1. 화면 중앙의 가챠 머신 레버를 마우스로 클릭하거나 드래그하여 돌립니다.<br>
-            2. 하단의 '레버 돌리기' 버튼을 사용해도 작동합니다.<br>
-            3. 캡슐이 나오면 결과창을 통해 획득한 아이템을 확인할 수 있습니다.</p>
-        </section>
-
-        <section id="contact" class="contact-section">
-            <h3>🤝 제휴 및 서비스 문의</h3>
-            <p>가챠 머신 커스텀 제작 또는 비즈니스 관련 문의는 아래 양식을 이용해 주세요.</p>
+        <section id="contact" class="contact-section pixel-border">
+            <h3 class="pixel-text">CONTACT</h3>
             <form action="https://formspree.io/f/xnjbkoko" method="POST" id="contact-form">
                 <div class="form-group">
-                    <input type="text" name="name" placeholder="성함/업체명" required>
+                    <input type="text" name="name" placeholder="NAME" required class="pixel-input">
                 </div>
                 <div class="form-group">
-                    <input type="email" name="_replyto" placeholder="이메일 주소" required>
+                    <input type="email" name="_replyto" placeholder="EMAIL" required class="pixel-input">
                 </div>
                 <div class="form-group">
-                    <textarea name="message" placeholder="문의 내용" required></textarea>
+                    <textarea name="message" placeholder="MESSAGE" required class="pixel-input"></textarea>
                 </div>
-                <button type="submit" class="submit-btn">문의 보내기</button>
+                <button type="submit" class="submit-btn retro-btn">SEND</button>
                 <p id="form-status"></p>
             </form>
         </section>
 
-        <div class="comments-section">
-            <h3>💬 커뮤니티 댓글</h3>
+        <div class="comments-section pixel-border">
+            <h3 class="pixel-text">COMMENTS</h3>
             <div id="disqus_thread"></div>
             <script>
                 (function() {
@@ -122,36 +110,30 @@
             </script>
         </div>
 
-        <!-- 개인정보처리방침 섹션 (애드센스 필수) -->
         <section class="policy-section">
-            <h4>개인정보처리방침 (Privacy Policy)</h4>
-            <p>본 사이트는 Google AdSense 및 Disqus를 통해 광고 및 댓글 서비스를 제공하며, 이를 위해 쿠키를 사용합니다. 쿠키 사용을 통해 사용자의 방문 정보를 수집할 수 있으며, 사용자는 브라우저 설정에서 쿠키 수집을 거부할 수 있습니다.</p>
+            <p>본 사이트는 레트로 게임 감성을 사랑하는 팬들을 위해 제작되었습니다. 쿠키 및 데이터 수집은 최소화하고 있습니다.</p>
         </section>
     </div>
 
     <footer class="main-footer">
-        <p>&copy; 2026 BANDAI Gacha Simulator. All Rights Reserved.</p>
-        <div class="footer-links">
-            <a href="#">이용약관</a> | <a href="#">개인정보처리방침</a>
-        </div>
+        <p class="pixel-text">&copy; 2026 PIXEL GACHA SIMULATOR</p>
     </footer>
 
     <!-- 결과 모달 -->
     <div id="result-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content pixel-border">
             <div id="capsule-result-container" class="capsule-result-container">
                 <div id="capsule-top" class="capsule-half top"></div>
                 <div id="capsule-bottom" class="capsule-half bottom"></div>
                 <div id="result-paper" class="result-paper">
                     <div class="paper-content">
-                        <h4>Gacha Item</h4>
+                        <h4 class="pixel-text">YOU GOT</h4>
                         <div class="divider"></div>
-                        <p id="item-name">축하합니다!</p>
-                        <p>레어 아이템 획득</p>
+                        <p id="item-name" class="pixel-text">NEW FACE!</p>
                     </div>
                 </div>
             </div>
-            <button onclick="closeModal()">닫기</button>
+            <button onclick="closeModal()" class="retro-btn">CLOSE</button>
         </div>
     </div>
 

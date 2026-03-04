@@ -1,8 +1,9 @@
 :root {
-  --primary-red: #e60012;
-  --dark-red: #b5000e;
-  --bg-color: #f4f7f9;
-  --text-color: #333;
+  --primary-blue: #0051ba;
+  --retro-red: #e60012;
+  --retro-yellow: #fecb05;
+  --pixel-white: #ffffff;
+  --pixel-black: #000000;
   --machine-width: 300px;
 }
 
@@ -10,225 +11,291 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  image-rendering: pixelated;
 }
 
 body {
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  font-family: 'Press Start 2P', cursive;
+  background-color: var(--primary-blue);
+  background-image: radial-gradient(circle, #2196f3 1px, transparent 1px);
+  background-size: 20px 20px;
+  color: var(--pixel-white);
   line-height: 1.6;
-}
-
-/* Header */
-.main-header {
-  background: white;
-  padding: 20px 0;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  text-align: center;
-}
-
-.main-header h1 {
-  font-size: 24px;
-  color: var(--primary-red);
-  margin-bottom: 10px;
-}
-
-.main-header nav a {
-  margin: 0 15px;
-  text-decoration: none;
-  color: #666;
-  font-weight: 600;
-  transition: color 0.3s;
-}
-
-.main-header nav a:hover {
-  color: var(--primary-red);
+  font-size: 10px;
 }
 
 .container {
   max-width: 900px;
   margin: 40px auto;
   padding: 0 20px;
+  text-align: center;
 }
 
-/* Machine Section */
-.machine-section {
-  text-align: center;
-  margin-bottom: 60px;
+.pixel-text {
+  text-shadow: 2px 2px var(--pixel-black);
 }
+
+.pixel-border {
+  border: 4px solid var(--pixel-black);
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.3);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+  padding: 20px;
+  margin-bottom: 40px;
+}
+
+/* Header */
+.main-header {
+  background: var(--retro-red);
+  padding: 20px 0;
+  border-bottom: 4px solid var(--pixel-black);
+  text-align: center;
+}
+
+.main-header h1 {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.main-header nav a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: var(--pixel-white);
+  font-size: 12px;
+}
+
+/* Retro Buttons */
+.retro-btn {
+  font-family: 'Press Start 2P', cursive;
+  padding: 10px 15px;
+  background: var(--retro-yellow);
+  color: var(--pixel-black);
+  border: 3px solid var(--pixel-black);
+  box-shadow: 4px 4px 0 var(--pixel-black);
+  cursor: pointer;
+  font-size: 10px;
+  transition: transform 0.1s;
+  margin: 5px;
+}
+
+.retro-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--pixel-black);
+}
+
+/* Face Capture Panel */
+.face-capture-panel {
+  margin-bottom: 40px;
+}
+
+.face-preview-container {
+  margin-top: 20px;
+}
+
+.face-preview {
+  width: 80px;
+  height: 80px;
+  border: 4px solid var(--pixel-black);
+  background: #444;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+}
+
+.pixel-hint { font-size: 8px; margin-top: 10px; }
+
+/* Machine Section */
+.machine-section { margin-bottom: 60px; }
 
 .gacha-machine {
   width: var(--machine-width);
   margin: 0 auto 30px;
   position: relative;
-  filter: drop-shadow(0 20px 30px rgba(0,0,0,0.15));
 }
 
-/* (Existing machine styles remain effective but simplified for brevity in this replace call) */
 .globe-container {
   width: var(--machine-width);
-  height: 280px;
-  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%);
-  border: 4px solid rgba(255,255,255,0.3);
+  height: 250px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 4px solid var(--pixel-black);
   border-radius: 50% 50% 10px 10px;
   position: relative;
   overflow: hidden;
   z-index: 2;
-  backdrop-filter: blur(1px);
 }
 
 .machine-body {
   width: var(--machine-width);
-  height: 260px;
-  background: linear-gradient(to right, #c40000, #ff1a1a, #e60012, #b5000e);
+  height: 240px;
+  background: var(--retro-red);
+  border: 4px solid var(--pixel-black);
   border-radius: 10px 10px 30px 30px;
   position: relative;
   padding: 20px;
-  margin-top: -5px;
+  margin-top: -10px;
+  box-shadow: inset -8px -8px 0 rgba(0,0,0,0.2);
 }
 
-.logo { color: white; font-weight: 900; font-size: 24px; letter-spacing: 2px; margin-bottom: 20px; }
+.logo { color: white; font-size: 20px; margin-bottom: 20px; text-shadow: 2px 2px var(--pixel-black); }
 
 .handle-area {
   width: 100px; height: 100px;
-  background: radial-gradient(circle, #eee, #bbb);
+  background: #ccc;
+  border: 4px solid var(--pixel-black);
   border-radius: 50%;
   margin: 0 auto;
-  display: flex; justify-content: center; align-items: center;
+  position: relative;
 }
 
-.handle { width: 80px; height: 80px; cursor: pointer; transition: transform 0.6s; }
-.handle-bar { width: 100%; height: 15px; background: #888; border-radius: 10px; position: absolute; top: 50%; transform: translateY(-50%); }
-.handle-center { width: 25px; height: 25px; background: #999; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.handle { width: 80px; height: 80px; position: relative; cursor: pointer; }
+.handle.spin { animation: spin-anim 1s linear; }
+@keyframes spin-anim { 100% { transform: rotate(360deg); } }
+
+.handle-bar { width: 100%; height: 10px; background: #888; border: 2px solid var(--pixel-black); position: absolute; top: 50%; transform: translateY(-50%); }
+.handle-center { width: 20px; height: 20px; background: #666; border: 2px solid var(--pixel-black); border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 
 .exit-slot {
-  width: 90px; height: 60px; background: #1a1a1a;
+  width: 80px; height: 50px; background: var(--pixel-black);
   position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-  border-radius: 10px;
+  border-radius: 5px;
 }
 
-.machine-base { width: 320px; height: 20px; background: #333; margin: -10px auto 0; border-radius: 5px; }
-
-/* Ads Section */
-.ad-container {
-  background: #eee;
-  padding: 20px;
-  margin: 40px 0;
-  text-align: center;
-  border-radius: 10px;
-  min-height: 100px;
+/* Capsule */
+.capsule {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  position: absolute;
+  border: 2px solid var(--pixel-black);
+  background-size: cover;
+  background-position: center;
+  background-color: #fff;
 }
 
-.ad-label {
-  font-size: 10px;
-  color: #999;
-  margin-bottom: 10px;
-  letter-spacing: 1px;
+/* 캡슐 반사광 효과 */
+.capsule::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  width: 15px;
+  height: 10px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 50%;
+  transform: rotate(-30deg);
 }
+
+.falling-capsule {
+  position: absolute;
+  left: 50%;
+  top: -40px;
+  transform: translateX(-50%);
+  z-index: 10;
+  animation: drop 0.8s forwards steps(10);
+}
+
+@keyframes drop {
+  0% { top: -40px; transform: translateX(-50%) rotate(0deg); }
+  100% { top: 60px; transform: translateX(-50%) rotate(360deg); opacity: 0; }
+}
+
+/* Spin Button */
+.spin-btn {
+  font-family: 'Press Start 2P', cursive;
+  padding: 20px 40px;
+  font-size: 16px;
+  background: var(--retro-yellow);
+  color: var(--pixel-black);
+  border: 4px solid var(--pixel-black);
+  box-shadow: 6px 6px 0 var(--pixel-black);
+  cursor: pointer;
+}
+
+.spin-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 3px 3px 0 var(--pixel-black);
+}
+
+.instruction { margin-top: 20px; font-size: 8px; }
 
 /* Content Sections */
-.content-section {
-  background: white;
-  padding: 40px;
-  border-radius: 20px;
-  margin-bottom: 40px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-  text-align: left;
-}
+.content-section { text-align: left; }
+.content-section p { font-size: 8px; margin-bottom: 10px; line-height: 2; }
 
-.content-section h2 {
-  margin-bottom: 20px;
-  color: var(--primary-red);
-  font-size: 22px;
-}
-
-.content-section h3 {
-  margin: 25px 0 15px;
-  font-size: 18px;
-}
-
-.content-section p {
-  margin-bottom: 15px;
-  color: #555;
-}
-
-.content-section ul {
-  padding-left: 20px;
-  margin-bottom: 15px;
-}
-
-.content-section li {
+.contact-section h3 { margin-bottom: 20px; }
+.pixel-input {
+  font-family: 'Press Start 2P', cursive;
+  width: 100%;
+  padding: 10px;
+  background: var(--pixel-white);
+  border: 3px solid var(--pixel-black);
   margin-bottom: 10px;
+  font-size: 8px;
 }
 
-/* Contact Section */
-.contact-section {
-  background: #2c3e50;
-  color: white;
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--primary-blue);
   padding: 40px;
-  border-radius: 20px;
-  margin-bottom: 40px;
-}
-
-.contact-section h3 { margin-bottom: 20px; font-size: 24px; text-align: center; }
-.contact-section p { text-align: center; margin-bottom: 20px; opacity: 0.8; }
-
-.form-group { margin-bottom: 15px; }
-.form-group input, .form-group textarea {
-  width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px;
-}
-
-.submit-btn {
-  width: 100%; padding: 15px; background: var(--primary-red); color: white;
-  border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer;
-}
-
-/* Comments */
-.comments-section {
-  background: white;
-  padding: 40px;
-  border-radius: 20px;
-  margin-bottom: 40px;
-}
-
-/* Policy Section */
-.policy-section {
-  font-size: 12px;
-  color: #999;
   text-align: center;
-  padding: 20px;
+  max-width: 400px;
 }
+
+.capsule-result-container {
+  width: 120px; height: 120px; margin: 0 auto 20px;
+  position: relative;
+}
+
+.capsule-half {
+  width: 100px; height: 50px;
+  border: 3px solid var(--pixel-black);
+  position: absolute; left: 10px;
+  transition: all 0.5s steps(5);
+}
+
+.capsule-half.top {
+  top: 10px;
+  border-radius: 50px 50px 0 0;
+  background: rgba(255,255,255,0.8);
+}
+
+.capsule-half.bottom {
+  bottom: 10px;
+  border-radius: 0 0 50px 50px;
+  background: var(--retro-yellow);
+}
+
+.open .capsule-half.top { transform: translateY(-40px) rotate(-10deg); }
+.open .capsule-half.bottom { transform: translateY(20px) rotate(10deg); }
+
+.result-paper {
+  position: absolute;
+  top: 40px; left: 20px; width: 80px; height: 40px;
+  background: white; border: 2px solid var(--pixel-black);
+  z-index: 5; opacity: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.open .result-paper { opacity: 1; transform: scale(1.5); transition: 0.5s steps(5); }
+.paper-content h4 { font-size: 8px; color: var(--retro-red); margin-bottom: 5px; }
+.paper-content p { font-size: 8px; color: var(--pixel-black); }
 
 /* Footer */
-.main-footer {
-  background: white;
-  padding: 40px 0;
-  text-align: center;
-  border-top: 1px solid #eee;
-}
+.main-footer { padding: 40px 0; border-top: 4px solid var(--pixel-black); }
 
-.footer-links { margin-top: 10px; }
-.footer-links a { text-decoration: none; color: #999; margin: 0 10px; font-size: 14px; }
-
-/* Existing Capsule/Modal styles remain largely same */
-.capsule {
-  width: 45px; height: 45px; border-radius: 50%; position: absolute;
-  box-shadow: inset 0 5px 8px rgba(255,255,255,0.5), 0 4px 8px rgba(0,0,0,0.3);
-}
-
-.controls button {
-  padding: 15px 40px; font-size: 20px; font-weight: 900;
-  background: var(--primary-red); color: white; border: none;
-  border-radius: 50px; cursor: pointer;
-  box-shadow: 0 4px 0 var(--dark-red); transition: 0.1s;
-}
-
-.controls button:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--dark-red); }
-
+/* Responsive */
 @media (max-width: 600px) {
   .container { padding: 0 10px; }
-  .content-section { padding: 25px; }
 }
