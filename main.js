@@ -1,13 +1,11 @@
-document.addEventListener('DOMContentLoaded', async () => {
-    // --- Elements ---
+document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM Elements ---
     const handle = document.getElementById('handle');
     const spinButton = document.getElementById('spin-button');
     const chute = document.getElementById('chute');
     const modal = document.getElementById('result-modal');
     const globeContainer = document.querySelector('.globe-container');
-    
-    const video = document.getElementById('video'); // This is webcamVideo
-    const canvas = document.getElementById('canvas');
+    const video = document.getElementById('video');
     const enableCameraBtn = document.getElementById('enable-camera');
     const takePhotoBtn = document.getElementById('take-photo');
     const uploadPhotoInput = document.getElementById('upload-photo');
@@ -17,194 +15,81 @@ document.addEventListener('DOMContentLoaded', async () => {
     const videoContainer = document.querySelector('.video-container');
     const loadingStatus = document.getElementById('loading-status');
 
-    // --- AI Models Loading ---
-    let faceModel;
+    // --- State Variables ---
     let segmenter;
-
-    async function loadModels() {
-        await tf.setBackend('webgl');
-        faceModel = await blazeface.load();
-        const segmenterModel = bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation;
-        const segmenterConfig = {
-            runtime: 'mediapipe',
-            solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation',
-            modelType: 'general'
-        };
-        segmenter = await bodySegmentation.createSegmenter(segmenterModel, segmenterConfig);
-        console.log("AI Models Loaded");
-        // 모델 로딩 완료 후 UI 업데이트
-        loadingStatus.style.display = 'none';
-        enableCameraBtn.disabled = false;
-        takePhotoBtn.disabled = false;
-        triggerUploadBtn.disabled = false;
-    }
-    loadModels();
-
-    // --- State ---
     let capturedFaceDataUrl = null;
     let isSpinning = false;
     const positiveMessages = [
-        "너의 미래는 밝게 빛나고 있어!",
-        "오늘의 한 걸음이 위대한 내일이 될 거야.",
-        "너는 이미 충분히 멋진 사람이야.",
-        "네가 가는 길이 곧 정답이 될 거야.",
-        "작은 노력이 모여 찬란한 꽃을 피울 거야.",
-        "네 안의 무한한 가능성을 믿어봐!",
-        "세상은 너의 도전을 기다리고 있어.",
-        "지금의 시련은 너를 더 단단하게 만들 거야.",
-        "너를 응원하는 우주의 기운을 느껴봐.",
-        "포기하지 않는 너의 모습이 가장 아름다워.",
-        "기적은 네가 믿는 순간 시작될 거야.",
-        "너는 사랑받기 위해 태어난 소중한 존재야."
+        "너의 미래는 밝게 빛나고 있어!", "오늘의 한 걸음이 위대한 내일이 될 거야.", "너는 이미 충분히 멋진 사람이야.",
+        "네가 가는 길이 곧 정답이 될 거야.", "작은 노력이 모여 찬란한 꽃을 피울 거야.", "네 안의 무한한 가능성을 믿어봐!",
+        "세상은 너의 도전을 기다리고 있어.", "지금의 시련은 너를 더 단단하게 만들 거야.", "너를 응원하는 우주의 기운을 느껴봐!",
+        "포기하지 않는 너의 모습이 가장 아름다워.", "기적은 네가 믿는 순간 시작될 거야.", "너는 사랑받기 위해 태어난 소중한 존재야."
     ];
 
-    // --- Three.js Physics Setup ---
-    let scene, camera, renderer, spheres = [];
-    const sphereCount = 20;
-    const gravity = 0.005;
-    const friction = 0.98;
-    const wallFriction = 0.8;
+    // --- Core Logic ---
 
-    function init3D() {
-        const width = globeContainer.clientWidth;
-        const height = globeContainer.clientHeight;
-        scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-        camera.position.z = 5;
-        renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false });
-        renderer.setSize(width, height);
-        renderer.setPixelRatio(window.devicePixelRatio / 4);
-        globeContainer.appendChild(renderer.domElement);
-        const light = new THREE.PointLight(0xffffff, 1, 100);
-        light.position.set(5, 5, 5);
-        scene.add(light);
-        scene.add(new THREE.AmbientLight(0x808080));
-        createSpheres();
-        animate();
-    }
-
-    function createSpheres() {
-        spheres.forEach(s => scene.remove(s));
-        spheres = [];
-        const geometry = new THREE.SphereGeometry(0.7, 32, 32);
-        const textureLoader = new THREE.TextureLoader();
-        for (let i = 0; i < sphereCount; i++) {
-            let material;
-            if (capturedFaceDataUrl) {
-                const texture = textureLoader.load(capturedFaceDataUrl);
-                material = new THREE.MeshStandardMaterial({ map: texture, transparent: true, roughness: 0.1, metalness: 0.1 });
-            } else {
-                const color = new THREE.Color().setHSL(Math.random(), 0.7, 0.5);
-                material = new THREE.MeshStandardMaterial({ color: color });
-            }
-            const sphere = new THREE.Mesh(geometry, material);
-            sphere.position.set((Math.random()-0.5)*3, -1.5+(Math.random()*0.5), (Math.random()-0.5)*1.5);
-            sphere.userData.velocity = new THREE.Vector3(0, 0, 0);
-            scene.add(sphere);
-            spheres.push(sphere);
+    // 1. Load the AI Model
+    async function loadModel() {
+        try {
+            const model = bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation;
+            const segmenterConfig = { runtime: 'mediapipe', solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation', modelType: 'general' };
+            segmenter = await bodySegmentation.createSegmenter(model, segmenterConfig);
+            console.log("AI Model Loaded Successfully.");
+            // Enable UI after model is loaded
+            loadingStatus.style.display = 'none';
+            enableCameraBtn.disabled = false;
+            triggerUploadBtn.disabled = false;
+        } catch (error) {
+            console.error("Error loading AI model:", error);
+            loadingStatus.textContent = "AI 모델 로딩 실패!";
         }
     }
 
-    function animate() {
-        requestAnimationFrame(animate);
-        spheres.forEach((sphere, idx) => {
-            sphere.userData.velocity.y -= gravity;
-            sphere.position.add(sphere.userData.velocity);
-            const floorLevel = -2.2;
-            const wallX = 2.4;
-            const wallZ = 1.4;
-            if (sphere.position.y <= floorLevel) {
-                sphere.position.y = floorLevel;
-                sphere.userData.velocity.y *= -0.4;
-                sphere.userData.velocity.multiplyScalar(friction);
-            }
-            if (Math.abs(sphere.position.x) > wallX) {
-                sphere.position.x = Math.sign(sphere.position.x)*wallX;
-                sphere.userData.velocity.x *= -wallFriction;
-            }
-            if (Math.abs(sphere.position.z) > wallZ) {
-                sphere.position.z = Math.sign(sphere.position.z)*wallZ;
-                sphere.userData.velocity.z *= -wallFriction;
-            }
-            for (let j = idx + 1; j < spheres.length; j++) {
-                const other = spheres[j];
-                const dist = sphere.position.distanceTo(other.position);
-                if (dist < 1.4) {
-                    const push = new THREE.Vector3().subVectors(sphere.position, other.position).normalize().multiplyScalar(0.01);
-                    sphere.userData.velocity.add(push);
-                    other.userData.velocity.sub(push);
-                }
-            }
-            sphere.rotation.y += sphere.userData.velocity.length() * 0.1;
-        });
-        renderer.render(scene, camera);
-    }
-
-    // --- Integrated Face Capture Logic (User's request) ---
-    
-    function stopWebcam() {
-        if (video.srcObject) {
-            const tracks = video.srcObject.getTracks();
-            tracks.forEach(track => track.stop());
-            videoContainer.style.display = 'none';
-            takePhotoBtn.style.display = 'none';
-            enableCameraBtn.style.display = 'inline-block';
+    // 2. Process any image source (video or image) to remove background
+    async function processImageSource(sourceElement) {
+        if (!segmenter) {
+            alert("AI 모델이 아직 로딩 중입니다. 잠시 후 다시 시도해주세요.");
+            return null;
         }
-    }
 
-    async function captureFace() {
-        if (!video.srcObject) return;
-
-        // --- 최적화: 더 작은 이미지로 처리 ---
         const tempCanvas = document.createElement('canvas');
         const ctx = tempCanvas.getContext('2d');
+        const scale = 0.5; // Processing at 50% resolution for better performance
+        tempCanvas.width = (sourceElement.videoWidth || sourceElement.width) * scale;
+        tempCanvas.height = (sourceElement.videoHeight || sourceElement.height) * scale;
+        ctx.drawImage(sourceElement, 0, 0, tempCanvas.width, tempCanvas.height);
 
-        // 처리할 해상도를 설정합니다. 값이 낮을수록 빠릅니다.
-        const scale = 0.5; 
-        const processWidth = video.videoWidth * scale;
-        const processHeight = video.videoHeight * scale;
-        tempCanvas.width = processWidth;
-        tempCanvas.height = processHeight;
+        try {
+            const segmentation = await segmenter.segmentPeople(tempCanvas);
+            if (segmentation.length === 0) {
+                alert("사진에서 사람을 찾지 못했습니다.");
+                return null;
+            }
 
-        // 웹캠 비디오 프레임을 작은 캔버스에 그립니다.
-        ctx.drawImage(video, 0, 0, processWidth, processHeight);
+            const personMask = await bodySegmentation.toBinaryMask(segmentation, { r: 0, g: 0, b: 0, a: 0 }, { r: 0, g: 0, b: 0, a: 255 });
+            await bodySegmentation.drawMask(tempCanvas, tempCanvas, personMask, 1.0, 0);
+            return tempCanvas.toDataURL('image/png');
 
-        // 1. 사람 분할 (작아진 캔버스 이미지로 수행)
-        if (!segmenter) {
-            alert("모델 로딩 중입니다.");
-            return;
+        } catch (error) {
+            console.error("Error during image processing:", error);
+            alert("이미지 처리 중 오류가 발생했습니다.");
+            return null;
         }
-        const segmentation = await segmenter.segmentPeople(tempCanvas);
-        if (segmentation.length === 0) {
-            console.log("No person detected");
-            return;
-        }
-
-        // 2. 배경 제거
-        const personMask = await bodySegmentation.toBinaryMask(segmentation, {r: 0, g: 0, b: 0, a: 0}, {r: 0, g: 0, b: 0, a: 255});
-        
-        await bodySegmentation.drawMask(
-            tempCanvas, 
-            tempCanvas, 
-            personMask, 
-            1.0, 
-            0 
-        );
-
-        // 3. 데이터 URL로 변환
-        capturedFaceDataUrl = tempCanvas.toDataURL('image/png');
-        console.log("Face captured with background removed (optimized)");
-
-        // 가챠 머신 UI 업데이트
-        facePreview.style.display = 'none';
+    }
+    
+    // 3. Update the UI and gacha machine with the processed image
+    function updateFace(imageDataUrl) {
+        if (!imageDataUrl) return;
+        capturedFaceDataUrl = imageDataUrl;
         capturedFaceImg.src = capturedFaceDataUrl;
         capturedFaceImg.style.display = 'block';
-
-        createSpheres();
-        stopWebcam();
+        facePreview.style.display = 'none';
+        createSpheres(); // Refresh gacha capsules
     }
 
-    // --- Face Capture UI Events ---
+    // --- Event Handlers ---
+
+    // Handle Webcam Activation
     enableCameraBtn.addEventListener('click', async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -212,100 +97,172 @@ document.addEventListener('DOMContentLoaded', async () => {
             videoContainer.style.display = 'block';
             enableCameraBtn.style.display = 'none';
             takePhotoBtn.style.display = 'inline-block';
+            takePhotoBtn.disabled = false; // Explicitly enable button
         } catch (err) {
+            console.error("Camera access denied:", err);
             alert('카메라 접근 권한이 필요합니다.');
         }
     });
 
-    takePhotoBtn.addEventListener('click', captureFace);
+    // Handle Taking a Photo
+    takePhotoBtn.addEventListener('click', async () => {
+        if (!video.srcObject) return;
+        const imageDataUrl = await processImageSource(video);
+        updateFace(imageDataUrl);
+        stopWebcam();
+    });
 
+    // Handle File Upload Button Click
     triggerUploadBtn.addEventListener('click', () => uploadPhotoInput.click());
-    uploadPhotoInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            triggerUploadBtn.textContent = "WAIT...";
-            const img = new Image();
-            img.src = URL.createObjectURL(file);
-            img.onload = async () => {
-                // Manually run processing for uploaded image
-                const segmentation = await segmenter.segmentPeople(img);
-                const foregroundThreshold = 0.5;
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = img.width;
-                tempCanvas.height = img.height;
-                const ctx = tempCanvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-                const personMask = await bodySegmentation.toBinaryMask(segmentation, {r:0,g:0,b:0,a:0}, {r:0,g:0,b:0,a:255}, false, foregroundThreshold);
-                const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-                for (let i = 0; i < personMask.data.length; i++) { if (personMask.data[i] === 0) imageData.data[i * 4 + 3] = 0; }
-                ctx.putImageData(imageData, 0, 0);
-                
-                const predictions = await faceModel.estimateFaces(img, false);
-                let finalCanvas = tempCanvas;
-                if (predictions.length > 0) {
-                    const face = predictions[0];
-                    finalCanvas = document.createElement('canvas');
-                    finalCanvas.width = 256; finalCanvas.height = 256;
-                    const fctx = finalCanvas.getContext('2d');
-                    fctx.beginPath(); fctx.arc(128, 128, 120, 0, Math.PI * 2); fctx.clip();
-                    const size = [face.bottomRight[0]-face.topLeft[0], face.bottomRight[1]-face.topLeft[1]];
-                    fctx.drawImage(tempCanvas, face.topLeft[0]-size[0]*0.3, face.topLeft[1]-size[1]*0.3, size[0]*1.6, size[1]*1.6, 0, 0, 256, 256);
-                }
-                capturedFaceDataUrl = finalCanvas.toDataURL('image/png');
-                facePreview.style.display = 'none';
-                capturedFaceImg.src = capturedFaceDataUrl;
-                capturedFaceImg.style.display = 'block';
-                createSpheres();
-                triggerUploadBtn.textContent = "UPLOAD PHOTO";
-            };
+
+    // Handle File Selection
+    uploadPhotoInput.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        triggerUploadBtn.disabled = true;
+        triggerUploadBtn.textContent = "처리 중...";
+
+        try {
+            const img = await new Promise((resolve, reject) => {
+                const image = new Image();
+                image.onload = () => resolve(image);
+                image.onerror = (err) => reject(err);
+                image.src = URL.createObjectURL(file);
+            });
+            const imageDataUrl = await processImageSource(img);
+            updateFace(imageDataUrl);
+        } catch (error) {
+            console.error("Error loading uploaded file:", error);
+            alert("이미지 파일을 불러오는 데 실패했습니다.");
+        } finally {
+            triggerUploadBtn.disabled = false;
+            triggerUploadBtn.textContent = "UPLOAD PHOTO";
+            uploadPhotoInput.value = ''; // Reset for next upload
         }
     });
 
-    // --- Gacha Control Logic ---
+    function stopWebcam() {
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+            videoContainer.style.display = 'none';
+            takePhotoBtn.style.display = 'none';
+            enableCameraBtn.style.display = 'inline-block';
+        }
+    }
+
+    // --- Three.js Gacha Machine ---
+    let scene, camera, renderer, spheres = [];
+    const sphereCount = 25;
+
+    function init3D() {
+        const { clientWidth: width, clientHeight: height } = globeContainer;
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        camera.position.z = 5;
+        renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        globeContainer.appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0xaaaaaa));
+        const light = new THREE.DirectionalLight(0xffffff, 0.8);
+        light.position.set(5, 5, 10);
+        scene.add(light);
+
+        createSpheres();
+        animate();
+    }
+
+    function createSpheres() {
+        spheres.forEach(s => scene.remove(s.mesh));
+        spheres = [];
+        const geometry = new THREE.SphereGeometry(0.7, 32, 16);
+        const textureLoader = new THREE.TextureLoader();
+        const faceMaterial = capturedFaceDataUrl ? new THREE.MeshStandardMaterial({ map: textureLoader.load(capturedFaceDataUrl), roughness: 0.3 }) : null;
+
+        for (let i = 0; i < sphereCount; i++) {
+            const material = faceMaterial ? faceMaterial : new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(Math.random(), 0.7, 0.6) });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4);
+            const sphere = { mesh, velocity: new THREE.Vector3(), angularVelocity: new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(0.05) };
+            spheres.push(sphere);
+            scene.add(mesh);
+        }
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        const gravity = -0.01;
+        const bounce = -0.5;
+        const damping = 0.98;
+
+        spheres.forEach(sphere => {
+            sphere.velocity.y += gravity;
+            sphere.mesh.position.add(sphere.velocity);
+            sphere.velocity.multiplyScalar(damping); // Air resistance
+
+            sphere.mesh.rotation.x += sphere.angularVelocity.x;
+            sphere.mesh.rotation.y += sphere.angularVelocity.y;
+
+            // Boundary collisions
+            if (sphere.mesh.position.y < -2.2) { sphere.mesh.position.y = -2.2; sphere.velocity.y *= bounce; }
+            if (Math.abs(sphere.mesh.position.x) > 2.4) { sphere.mesh.position.x = Math.sign(sphere.mesh.position.x) * 2.4; sphere.velocity.x *= bounce; }
+            if (Math.abs(sphere.mesh.position.z) > 1.4) { sphere.mesh.position.z = Math.sign(sphere.mesh.position.z) * 1.4; sphere.velocity.z *= bounce; }
+        });
+        renderer.render(scene, camera);
+    }
+
+    // --- Gacha Controls ---
     function spinGacha() {
         if (isSpinning) return;
         isSpinning = true;
         handle.classList.add('spin');
-        spheres.forEach(sphere => {
-            sphere.userData.velocity.set((Math.random()-0.5)*0.8, (Math.random()+0.5)*0.5, (Math.random()-0.5)*0.8);
+        spheres.forEach(sphere => { // Give capsules a kick
+            sphere.velocity.set((Math.random() - 0.5) * 0.4, Math.random() * 0.8, (Math.random() - 0.5) * 0.4);
         });
-        setTimeout(() => dropCapsule(), 600);
-        setTimeout(() => { handle.classList.remove('spin'); isSpinning = false; }, 1100);
+        setTimeout(dropCapsule, 800);
+        setTimeout(() => { handle.classList.remove('spin'); isSpinning = false; }, 1200);
     }
 
     function dropCapsule() {
         const fallingCap = document.createElement('div');
         fallingCap.className = 'capsule falling-capsule';
-        if (capturedFaceDataUrl) { fallingCap.style.backgroundImage = `url(${capturedFaceDataUrl})`; }
-        else { fallingCap.style.backgroundColor = '#fecb05'; }
+        const randomColor = new THREE.Color().setHSL(Math.random(), 0.8, 0.6).getStyle();
+        
+        if (capturedFaceDataUrl) {
+            fallingCap.style.backgroundImage = `url(${capturedFaceDataUrl})`;
+            fallingCap.style.backgroundSize = 'cover';
+        } else {
+            fallingCap.style.backgroundColor = randomColor;
+        }
         chute.appendChild(fallingCap);
-        setTimeout(() => { showResult(); fallingCap.remove(); }, 800);
+        setTimeout(() => { showResult(fallingCap.style.cssText); fallingCap.remove(); }, 800);
     }
 
-    function showResult() {
+    function showResult(capsuleStyle) {
         const capsuleTop = document.getElementById('capsule-top');
-        const capsuleContainer = document.getElementById('capsule-result-container');
         const itemName = document.getElementById('item-name');
-        if (capturedFaceDataUrl) {
-            capsuleTop.style.backgroundImage = `url(${capturedFaceDataUrl})`;
-            capsuleTop.style.backgroundSize = 'cover';
-        } else {
-            capsuleTop.style.backgroundColor = '#fff';
-        }
+        capsuleTop.style.cssText = capsuleStyle;
         const randomMsg = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
         itemName.textContent = randomMsg;
         modal.style.display = 'flex';
-        setTimeout(() => capsuleContainer.classList.add('open'), 500);
+        document.getElementById('capsule-result-container').classList.add('open');
     }
 
     handle.addEventListener('click', spinGacha);
     spinButton.addEventListener('click', spinGacha);
+
+    // --- Initializations ---
+    loadModel();
     init3D();
 });
 
 function closeModal() {
     const modal = document.getElementById('result-modal');
-    const capsuleContainer = document.getElementById('capsule-result-container');
-    capsuleContainer.classList.remove('open');
-    modal.style.display = 'none';
+    if (modal) {
+        const container = document.getElementById('capsule-result-container');
+        if(container) container.classList.remove('open');
+        modal.style.display = 'none';
+    }
 }
