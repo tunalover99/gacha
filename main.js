@@ -6,13 +6,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modal = document.getElementById('result-modal');
     const globeContainer = document.querySelector('.globe-container');
     
-    const video = document.getElementById('video');
+    const video = document.getElementById('video'); // This is webcamVideo
     const canvas = document.getElementById('canvas');
     const enableCameraBtn = document.getElementById('enable-camera');
     const takePhotoBtn = document.getElementById('take-photo');
     const uploadPhotoInput = document.getElementById('upload-photo');
     const triggerUploadBtn = document.getElementById('trigger-upload');
     const facePreview = document.getElementById('face-preview');
+    const capturedFaceImg = document.getElementById('captured-face');
     const videoContainer = document.querySelector('.video-container');
 
     // --- AI Models Loading ---
@@ -20,11 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let segmenter;
 
     async function loadModels() {
-        // 1. Load BlazeFace for face detection
         faceModel = await blazeface.load();
-        console.log("BlazeFace Model Loaded");
-
-        // 2. Load Body Segmentation for background removal
         const segmenterModel = bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation;
         const segmenterConfig = {
             runtime: 'mediapipe',
@@ -32,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             modelType: 'general'
         };
         segmenter = await bodySegmentation.createSegmenter(segmenterModel, segmenterConfig);
-        console.log("Body Segmentation Model Loaded");
+        console.log("AI Models Loaded");
     }
     loadModels();
 
@@ -64,21 +61,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     function init3D() {
         const width = globeContainer.clientWidth;
         const height = globeContainer.clientHeight;
-
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
         camera.position.z = 5;
-
         renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false });
         renderer.setSize(width, height);
         renderer.setPixelRatio(window.devicePixelRatio / 4);
         globeContainer.appendChild(renderer.domElement);
-
         const light = new THREE.PointLight(0xffffff, 1, 100);
         light.position.set(5, 5, 5);
         scene.add(light);
         scene.add(new THREE.AmbientLight(0x808080));
-
         createSpheres();
         animate();
     }
@@ -86,29 +79,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     function createSpheres() {
         spheres.forEach(s => scene.remove(s));
         spheres = [];
-
         const geometry = new THREE.SphereGeometry(0.7, 32, 32);
         const textureLoader = new THREE.TextureLoader();
-        
         for (let i = 0; i < sphereCount; i++) {
             let material;
             if (capturedFaceDataUrl) {
                 const texture = textureLoader.load(capturedFaceDataUrl);
-                material = new THREE.MeshStandardMaterial({ 
-                    map: texture,
-                    transparent: true,
-                    roughness: 0.1,
-                    metalness: 0.1
-                });
+                material = new THREE.MeshStandardMaterial({ map: texture, transparent: true, roughness: 0.1, metalness: 0.1 });
             } else {
                 const color = new THREE.Color().setHSL(Math.random(), 0.7, 0.5);
                 material = new THREE.MeshStandardMaterial({ color: color });
             }
-
             const sphere = new THREE.Mesh(geometry, material);
             sphere.position.set((Math.random()-0.5)*3, -1.5+(Math.random()*0.5), (Math.random()-0.5)*1.5);
             sphere.userData.velocity = new THREE.Vector3(0, 0, 0);
-
             scene.add(sphere);
             spheres.push(sphere);
         }
@@ -119,11 +103,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         spheres.forEach((sphere, idx) => {
             sphere.userData.velocity.y -= gravity;
             sphere.position.add(sphere.userData.velocity);
-
             const floorLevel = -2.2;
             const wallX = 2.4;
             const wallZ = 1.4;
-
             if (sphere.position.y <= floorLevel) {
                 sphere.position.y = floorLevel;
                 sphere.userData.velocity.y *= -0.4;
@@ -151,69 +133,99 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderer.render(scene, camera);
     }
 
-    // --- AI Face Crop & Recognition Function ---
-    async function processFaceImage(imgSource) {
-        if (!faceModel || !segmenter) {
-            alert("모델이 로드 중입니다. 잠시만 기다려 주세요.");
-            return null;
+    // --- Integrated Face Capture Logic (User's request) ---
+    
+    function stopWebcam() {
+        if (video.srcObject) {
+            const tracks = video.srcObject.getTracks();
+            tracks.forEach(track => track.stop());
+            videoContainer.style.display = 'none';
+            takePhotoBtn.style.display = 'none';
+            enableCameraBtn.style.display = 'inline-block';
+        }
+    }
+
+    async function captureFace() {
+        if (!video.srcObject) return;
+        if (!segmenter) {
+            alert("모델 로딩 중입니다.");
+            return;
         }
 
-        // 1. Detect Face for cropping
-        const predictions = await faceModel.estimateFaces(imgSource, false);
-        if (predictions.length === 0) {
-            alert("얼굴을 찾을 수 없습니다. 정면을 응시해 주세요.");
-            return null;
+        takePhotoBtn.textContent = "WAIT...";
+
+        // 1. 사람 분할
+        const segmentation = await segmenter.segmentPeople(video);
+        if (segmentation.length === 0) {
+            alert("사람을 찾을 수 없습니다.");
+            takePhotoBtn.textContent = "TAKE PHOTO";
+            return;
         }
 
-        // 2. Body Segmentation for background removal
-        const segmentation = await segmenter.segmentPeople(imgSource);
-        const foregroundMask = await bodySegmentation.toBinaryMask(segmentation);
-
-        const face = predictions[0];
-        const start = face.topLeft;
-        const end = face.bottomRight;
-        const size = [end[0] - start[0], end[1] - start[1]];
-
+        // 2. 배경 제거
+        const foregroundThreshold = 0.5;
         const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = imgSource.width || imgSource.videoWidth;
-        tempCanvas.height = imgSource.height || imgSource.videoHeight;
+        tempCanvas.width = video.videoWidth;
+        tempCanvas.height = video.videoHeight;
         const ctx = tempCanvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
 
-        // Draw original image
-        ctx.drawImage(imgSource, 0, 0);
+        const personMask = await bodySegmentation.toBinaryMask(
+            segmentation, {r: 0, g: 0, b: 0, a: 0}, {r: 0, g: 0, b: 0, a: 255},
+            false, foregroundThreshold
+        );
+
+        // 배경을 투명하게 만들기 위해 직접 처리 (drawMask는 불투명 배경을 만들 수 있음)
         const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-        const pixelData = imageData.data;
-
-        // Apply segmentation mask (remove background)
-        for (let i = 0; i < foregroundMask.data.length; i++) {
-            if (foregroundMask.data[i] === 0) { // Background
-                pixelData[i * 4 + 3] = 0; // Transparent
+        for (let i = 0; i < personMask.data.length; i++) {
+            if (personMask.data[i] === 0) { // Background
+                imageData.data[i * 4 + 3] = 0; // Alpha to 0
             }
         }
         ctx.putImageData(imageData, 0, 0);
 
-        // Final Crop to Face with Circle Mask
-        const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = 256;
-        finalCanvas.height = 256;
-        const fctx = finalCanvas.getContext('2d');
+        // 3. 얼굴만 크롭 (BlazeFace 연동)
+        const predictions = await faceModel.estimateFaces(video, false);
+        let finalCanvas = tempCanvas;
+        
+        if (predictions.length > 0) {
+            const face = predictions[0];
+            const start = face.topLeft;
+            const end = face.bottomRight;
+            const size = [end[0] - start[0], end[1] - start[1]];
+            
+            finalCanvas = document.createElement('canvas');
+            finalCanvas.width = 256;
+            finalCanvas.height = 256;
+            const fctx = finalCanvas.getContext('2d');
+            
+            fctx.beginPath();
+            fctx.arc(128, 128, 120, 0, Math.PI * 2);
+            fctx.clip();
+            
+            const margin = 0.3;
+            fctx.drawImage(tempCanvas, 
+                start[0] - size[0]*margin, start[1] - size[1]*margin, 
+                size[0]*(1+margin*2), size[1]*(1+margin*2), 
+                0, 0, 256, 256
+            );
+        }
 
-        fctx.beginPath();
-        fctx.arc(128, 128, 120, 0, Math.PI * 2);
-        fctx.clip();
+        // 4. 데이터 URL로 변환
+        capturedFaceDataUrl = finalCanvas.toDataURL('image/png');
+        console.log("Face captured with background removed");
 
-        const margin = 0.3; 
-        const sourceX = start[0] - size[0] * margin;
-        const sourceY = start[1] - size[1] * margin;
-        const sourceWidth = size[0] * (1 + margin * 2);
-        const sourceHeight = size[1] * (1 + margin * 2);
+        // 가챠 머신 UI 업데이트
+        facePreview.style.display = 'none';
+        capturedFaceImg.src = capturedFaceDataUrl;
+        capturedFaceImg.style.display = 'block';
 
-        fctx.drawImage(tempCanvas, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, 256, 256);
-
-        return finalCanvas.toDataURL('image/png');
+        createSpheres();
+        takePhotoBtn.textContent = "TAKE PHOTO";
+        stopWebcam();
     }
 
-    // --- Face Capture UI Logic ---
+    // --- Face Capture UI Events ---
     enableCameraBtn.addEventListener('click', async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -226,22 +238,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    takePhotoBtn.addEventListener('click', async () => {
-        takePhotoBtn.textContent = "WAIT...";
-        const result = await processFaceImage(video);
-        if (result) {
-            capturedFaceDataUrl = result;
-            facePreview.style.backgroundImage = `url(${capturedFaceDataUrl})`;
-            createSpheres();
-            
-            const tracks = video.srcObject.getTracks();
-            tracks.forEach(t => t.stop());
-            videoContainer.style.display = 'none';
-            takePhotoBtn.style.display = 'none';
-            enableCameraBtn.style.display = 'inline-block';
-        }
-        takePhotoBtn.textContent = "TAKE PHOTO";
-    });
+    takePhotoBtn.addEventListener('click', captureFace);
 
     triggerUploadBtn.addEventListener('click', () => uploadPhotoInput.click());
     uploadPhotoInput.addEventListener('change', async (e) => {
@@ -251,12 +248,35 @@ document.addEventListener('DOMContentLoaded', async () => {
             const img = new Image();
             img.src = URL.createObjectURL(file);
             img.onload = async () => {
-                const result = await processFaceImage(img);
-                if (result) {
-                    capturedFaceDataUrl = result;
-                    facePreview.style.backgroundImage = `url(${capturedFaceDataUrl})`;
-                    createSpheres();
+                // Manually run processing for uploaded image
+                const segmentation = await segmenter.segmentPeople(img);
+                const foregroundThreshold = 0.5;
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = img.width;
+                tempCanvas.height = img.height;
+                const ctx = tempCanvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const personMask = await bodySegmentation.toBinaryMask(segmentation, {r:0,g:0,b:0,a:0}, {r:0,g:0,b:0,a:255}, false, foregroundThreshold);
+                const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                for (let i = 0; i < personMask.data.length; i++) { if (personMask.data[i] === 0) imageData.data[i * 4 + 3] = 0; }
+                ctx.putImageData(imageData, 0, 0);
+                
+                const predictions = await faceModel.estimateFaces(img, false);
+                let finalCanvas = tempCanvas;
+                if (predictions.length > 0) {
+                    const face = predictions[0];
+                    finalCanvas = document.createElement('canvas');
+                    finalCanvas.width = 256; finalCanvas.height = 256;
+                    const fctx = finalCanvas.getContext('2d');
+                    fctx.beginPath(); fctx.arc(128, 128, 120, 0, Math.PI * 2); fctx.clip();
+                    const size = [face.bottomRight[0]-face.topLeft[0], face.bottomRight[1]-face.topLeft[1]];
+                    fctx.drawImage(tempCanvas, face.topLeft[0]-size[0]*0.3, face.topLeft[1]-size[1]*0.3, size[0]*1.6, size[1]*1.6, 0, 0, 256, 256);
                 }
+                capturedFaceDataUrl = finalCanvas.toDataURL('image/png');
+                facePreview.style.display = 'none';
+                capturedFaceImg.src = capturedFaceDataUrl;
+                capturedFaceImg.style.display = 'block';
+                createSpheres();
                 triggerUploadBtn.textContent = "UPLOAD PHOTO";
             };
         }
@@ -267,45 +287,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (isSpinning) return;
         isSpinning = true;
         handle.classList.add('spin');
-        
         spheres.forEach(sphere => {
             sphere.userData.velocity.set((Math.random()-0.5)*0.8, (Math.random()+0.5)*0.5, (Math.random()-0.5)*0.8);
         });
-
         setTimeout(() => dropCapsule(), 600);
-        setTimeout(() => {
-            handle.classList.remove('spin');
-            isSpinning = false;
-        }, 1100);
+        setTimeout(() => { handle.classList.remove('spin'); isSpinning = false; }, 1100);
     }
 
     function dropCapsule() {
         const fallingCap = document.createElement('div');
         fallingCap.className = 'capsule falling-capsule';
-        if (capturedFaceDataUrl) {
-            fallingCap.style.backgroundImage = `url(${capturedFaceDataUrl})`;
-        } else {
-            fallingCap.style.backgroundColor = '#fecb05';
-        }
+        if (capturedFaceDataUrl) { fallingCap.style.backgroundImage = `url(${capturedFaceDataUrl})`; }
+        else { fallingCap.style.backgroundColor = '#fecb05'; }
         chute.appendChild(fallingCap);
-        setTimeout(() => {
-            showResult();
-            fallingCap.remove();
-        }, 800);
+        setTimeout(() => { showResult(); fallingCap.remove(); }, 800);
     }
 
     function showResult() {
         const capsuleTop = document.getElementById('capsule-top');
         const capsuleContainer = document.getElementById('capsule-result-container');
         const itemName = document.getElementById('item-name');
-
         if (capturedFaceDataUrl) {
             capsuleTop.style.backgroundImage = `url(${capturedFaceDataUrl})`;
             capsuleTop.style.backgroundSize = 'cover';
         } else {
             capsuleTop.style.backgroundColor = '#fff';
         }
-        
         const randomMsg = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
         itemName.textContent = randomMsg;
         modal.style.display = 'flex';
