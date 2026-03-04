@@ -3,58 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>반다이 가챠 시뮬레이터</title>
+    <title>반다이 가챠 시뮬레이터 - 온라인 캡슐토이 체험 및 가이드</title>
+    <meta name="description" content="전 세계적으로 사랑받는 밴다이(BANDAI) 가챠폰을 온라인에서 무료로 시뮬레이션해보세요. 다양한 캡슐 토이 정보와 가이드도 함께 제공합니다.">
+    <meta name="keywords" content="밴다이, 가챠, 가샤폰, 시뮬레이터, 캡슐토이, 반다이, 가챠 머신, 온라인 가챠">
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5680068113267734"
      crossorigin="anonymous"></script>
     <meta name="google-adsense-account" content="ca-pub-5680068113267734">
+
+    <!-- Open Graph for Social Media -->
+    <meta property="og:title" content="반다이 가챠 시뮬레이터">
+    <meta property="og:description" content="고퀄리티 가챠 머신 시뮬레이션과 캡슐 토이 정보 사이트">
+    <meta property="og:type" content="website">
 </head>
 <body>
-    <div class="container">
-        <div class="gacha-machine">
-            <!-- 상단 투명 돔 -->
-            <div class="globe-container">
-                <div class="inner-capsules" id="inner-capsules">
-                    <!-- JS로 캡슐들이 채워집니다 -->
-                </div>
-            </div>
-            
-            <!-- 기계 몸체 -->
-            <div class="machine-body">
-                <div class="logo">BANDAI</div>
-                
-                <!-- 코인 투입구 -->
-                <div class="coin-slot-area">
-                    <div class="coin-slot"></div>
-                    <div class="price-tag">500₩</div>
-                </div>
+    <header class="main-header">
+        <h1>BANDAI Gacha Simulator</h1>
+        <nav>
+            <a href="#machine">시뮬레이터</a>
+            <a href="#about">정보</a>
+            <a href="#guide">가이드</a>
+            <a href="#contact">문의</a>
+        </nav>
+    </header>
 
-                <!-- 레버 영역 -->
-                <div class="handle-area">
-                    <div class="handle" id="handle">
-                        <div class="handle-bar"></div>
-                        <div class="handle-center"></div>
+    <div class="container">
+        <section id="machine" class="machine-section">
+            <div class="gacha-machine">
+                <!-- 상단 투명 돔 -->
+                <div class="globe-container">
+                    <div class="inner-capsules" id="inner-capsules">
+                        <!-- JS로 캡슐들이 채워집니다 -->
                     </div>
                 </div>
-
-                <!-- 출구 -->
-                <div class="exit-slot">
-                    <div class="chute" id="chute"></div>
+                
+                <!-- 기계 몸체 -->
+                <div class="machine-body">
+                    <div class="logo">BANDAI</div>
+                    <div class="coin-slot-area">
+                        <div class="coin-slot"></div>
+                        <div class="price-tag">500₩</div>
+                    </div>
+                    <div class="handle-area">
+                        <div class="handle" id="handle">
+                            <div class="handle-bar"></div>
+                            <div class="handle-center"></div>
+                        </div>
+                    </div>
+                    <div class="exit-slot">
+                        <div class="chute" id="chute"></div>
+                    </div>
                 </div>
+                <div class="machine-base"></div>
             </div>
             
-            <!-- 바닥 지지대 -->
-            <div class="machine-base"></div>
-        </div>
-        
-        <div class="controls">
-            <button id="spin-button">레버 돌리기</button>
-            <p class="instruction">레버를 클릭하거나 버튼을 눌러보세요!</p>
+            <div class="controls">
+                <button id="spin-button">레버 돌리기</button>
+                <p class="instruction">레버를 클릭하거나 버튼을 눌러보세요!</p>
+            </div>
+        </section>
+
+        <!-- 광고 영역 (AdSense Placeholder) -->
+        <div class="ad-container">
+            <p class="ad-label">ADVERTISEMENT</p>
+            <!-- 여기에 애드센스 광고 코드를 삽입하세요 -->
         </div>
 
-        <!-- 제휴 문의 섹션 -->
-        <div class="contact-section">
-            <h3>🤝 제휴 문의</h3>
+        <!-- 정보 섹션 (고품질 콘텐츠) -->
+        <section id="about" class="content-section">
+            <h2>🇯🇵 밴다이 가챠(Gashapon)란 무엇인가요?</h2>
+            <p>'가샤폰(Gashapon)'은 밴다이가 상표권을 가진 캡슐 토이 브랜드입니다. '가샤'는 레버를 돌릴 때 나는 소리, '폰'은 캡슐이 나올 때 나는 소리를 의미합니다. 1977년 이후 밴다이는 전 세계에 수천 가지 이상의 정교한 피규어와 미니어처를 출시하며 성인들에게도 큰 인기를 끌고 있습니다.</p>
+            
+            <h3>왜 이 시뮬레이터를 사용하나요?</h3>
+            <ul>
+                <li><strong>확률 체험</strong>: 실제 가챠와 유사한 확률을 미리 경험해볼 수 있습니다.</li>
+                <li><strong>수집 욕구 충족</strong>: 오프라인 매장에 가기 전, 원하는 아이템이 나올 때까지의 기대감을 즐길 수 있습니다.</li>
+                <li><strong>무료 체험</strong>: 실제 코인 없이도 밴다이의 감성을 느낄 수 있도록 디자인되었습니다.</li>
+            </ul>
+        </section>
+
+        <section id="guide" class="content-section">
+            <h2>📖 시뮬레이터 이용 가이드</h2>
+            <p>1. 화면 중앙의 가챠 머신 레버를 마우스로 클릭하거나 드래그하여 돌립니다.<br>
+            2. 하단의 '레버 돌리기' 버튼을 사용해도 작동합니다.<br>
+            3. 캡슐이 나오면 결과창을 통해 획득한 아이템을 확인할 수 있습니다.</p>
+        </section>
+
+        <section id="contact" class="contact-section">
+            <h3>🤝 제휴 및 서비스 문의</h3>
+            <p>가챠 머신 커스텀 제작 또는 비즈니스 관련 문의는 아래 양식을 이용해 주세요.</p>
             <form action="https://formspree.io/f/xnjbkoko" method="POST" id="contact-form">
                 <div class="form-group">
                     <input type="text" name="name" placeholder="성함/업체명" required>
@@ -63,62 +102,55 @@
                     <input type="email" name="_replyto" placeholder="이메일 주소" required>
                 </div>
                 <div class="form-group">
-                    <textarea name="message" placeholder="문의 내용 (예: 가챠 기계 커스텀 제작 문의 등)" required></textarea>
+                    <textarea name="message" placeholder="문의 내용" required></textarea>
                 </div>
-                <!-- 스팸 방지 및 리다이렉트 설정 (선택 사항) -->
-                <input type="hidden" name="_subject" value="가챠 시뮬레이터 제휴 문의">
-                
                 <button type="submit" class="submit-btn">문의 보내기</button>
                 <p id="form-status"></p>
             </form>
-        </div>
+        </section>
 
-        <!-- Disqus 댓글 섹션 -->
         <div class="comments-section">
-            <h3>💬 댓글</h3>
+            <h3>💬 커뮤니티 댓글</h3>
             <div id="disqus_thread"></div>
             <script>
-                /**
-                *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
-                *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
-                /*
-                var disqus_config = function () {
-                this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
-                this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
-                };
-                */
-                (function() { // DON'T EDIT BELOW THIS LINE
+                (function() {
                 var d = document, s = d.createElement('script');
                 s.src = 'https://gacha-3.disqus.com/embed.js';
                 s.setAttribute('data-timestamp', +new Date());
                 (d.head || d.body).appendChild(s);
                 })();
             </script>
-            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
         </div>
+
+        <!-- 개인정보처리방침 섹션 (애드센스 필수) -->
+        <section class="policy-section">
+            <h4>개인정보처리방침 (Privacy Policy)</h4>
+            <p>본 사이트는 Google AdSense 및 Disqus를 통해 광고 및 댓글 서비스를 제공하며, 이를 위해 쿠키를 사용합니다. 쿠키 사용을 통해 사용자의 방문 정보를 수집할 수 있으며, 사용자는 브라우저 설정에서 쿠키 수집을 거부할 수 있습니다.</p>
+        </section>
     </div>
+
+    <footer class="main-footer">
+        <p>&copy; 2026 BANDAI Gacha Simulator. All Rights Reserved.</p>
+        <div class="footer-links">
+            <a href="#">이용약관</a> | <a href="#">개인정보처리방침</a>
+        </div>
+    </footer>
 
     <!-- 결과 모달 -->
     <div id="result-modal" class="modal">
         <div class="modal-content">
             <div id="capsule-result-container" class="capsule-result-container">
-                <!-- 캡슐 상단 -->
                 <div id="capsule-top" class="capsule-half top"></div>
-                <!-- 캡슐 하단 -->
                 <div id="capsule-bottom" class="capsule-half bottom"></div>
-                <!-- 내부 종이 -->
                 <div id="result-paper" class="result-paper">
                     <div class="paper-content">
                         <h4>Gacha Item</h4>
                         <div class="divider"></div>
                         <p id="item-name">축하합니다!</p>
                         <p>레어 아이템 획득</p>
-                        <div class="fold-line"></div>
-                        <div class="fold-line"></div>
                     </div>
                 </div>
             </div>
-            <p id="result-text">캡슐을 획득했습니다!</p>
             <button onclick="closeModal()">닫기</button>
         </div>
     </div>
