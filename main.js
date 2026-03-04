@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // --- Elements ---
     const handle = document.getElementById('handle');
     const spinButton = document.getElementById('spin-button');
@@ -14,6 +14,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const triggerUploadBtn = document.getElementById('trigger-upload');
     const facePreview = document.getElementById('face-preview');
     const videoContainer = document.querySelector('.video-container');
+
+    // --- AI Model Loading (BodyPix) ---
+    let net;
+    async function loadModel() {
+        net = await bodyPix.load({
+            architecture: 'MobileNetV1',
+            outputStride: 16,
+            multiplier: 0.75,
+            quantBytes: 2
+        });
+        console.log("AI Model Loaded");
+    }
+    loadModel();
 
     // --- State ---
     let capturedFaceDataUrl = null;
@@ -33,9 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
         "너는 사랑받기 위해 태어난 소중한 존재야."
     ];
 
-    // --- Three.js Setup (3D Sphere Gacha) ---
+    // --- Three.js Physics Setup ---
     let scene, camera, renderer, spheres = [];
     const sphereCount = 20;
+    const gravity = 0.005;
+    const friction = 0.98;
+    const wallFriction = 0.8;
 
     function init3D() {
         const width = globeContainer.clientWidth;
@@ -53,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const light = new THREE.PointLight(0xffffff, 1, 100);
         light.position.set(5, 5, 5);
         scene.add(light);
-        scene.add(new THREE.AmbientLight(0x404040));
+        scene.add(new THREE.AmbientLight(0x606060));
 
         createSpheres();
         animate();
@@ -63,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         spheres.forEach(s => scene.remove(s));
         spheres = [];
 
-        const geometry = new THREE.SphereGeometry(0.8, 32, 32);
+        const geometry = new THREE.SphereGeometry(0.7, 32, 32);
         const textureLoader = new THREE.TextureLoader();
         
         for (let i = 0; i < sphereCount; i++) {
@@ -72,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const texture = textureLoader.load(capturedFaceDataUrl);
                 material = new THREE.MeshStandardMaterial({ 
                     map: texture,
+                    transparent: true,
                     roughness: 0.2,
                     metalness: 0.1
                 });
@@ -82,19 +99,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const sphere = new THREE.Mesh(geometry, material);
             
-            // Random initial pos within bounds
+            // Random initial pos (stacked at bottom initially)
             sphere.position.set(
-                (Math.random() - 0.5) * 4,
-                (Math.random() - 0.5) * 4,
-                (Math.random() - 0.5) * 2
+                (Math.random() - 0.5) * 3,
+                -1.5 + (Math.random() * 0.5), // Start at bottom
+                (Math.random() - 0.5) * 1.5
             );
             
-            // Random velocity
-            sphere.userData.velocity = new THREE.Vector3(
-                (Math.random() - 0.5) * 0.05,
-                (Math.random() - 0.5) * 0.05,
-                (Math.random() - 0.5) * 0.05
-            );
+            // Initial velocity is zero (static)
+            sphere.userData.velocity = new THREE.Vector3(0, 0, 0);
 
             scene.add(sphere);
             spheres.push(sphere);
@@ -104,33 +117,90 @@ document.addEventListener('DOMContentLoaded', () => {
     function animate() {
         requestAnimationFrame(animate);
 
-        spheres.forEach(sphere => {
-            // Collision with boundaries
-            const bounds = 2.5;
-            if (Math.abs(sphere.position.x) > bounds) sphere.userData.velocity.x *= -1;
-            if (Math.abs(sphere.position.y) > bounds) sphere.userData.velocity.y *= -1;
-            if (Math.abs(sphere.position.z) > 1.5) sphere.userData.velocity.z *= -1;
+        spheres.forEach((sphere, idx) => {
+            // Apply Gravity
+            sphere.userData.velocity.y -= gravity;
 
+            // Apply Velocity
             sphere.position.add(sphere.userData.velocity);
-            sphere.rotation.y += 0.01;
+
+            // Floor & Wall Collision (simple logic)
+            const floorLevel = -2.2;
+            const wallX = 2.4;
+            const wallZ = 1.4;
+
+            if (sphere.position.y <= floorLevel) {
+                sphere.position.y = floorLevel;
+                sphere.userData.velocity.y *= -0.5; // Bounce
+                sphere.userData.velocity.multiplyScalar(friction); // Ground friction
+            }
+
+            if (Math.abs(sphere.position.x) > wallX) {
+                sphere.position.x = Math.sign(sphere.position.x) * wallX;
+                sphere.userData.velocity.x *= -wallFriction;
+            }
+
+            if (Math.abs(sphere.position.z) > wallZ) {
+                sphere.position.z = Math.sign(sphere.position.z) * wallZ;
+                sphere.userData.velocity.z *= -wallFriction;
+            }
+
+            // Simple Sphere-Sphere collision (pseudo-repulsion)
+            for (let j = idx + 1; j < spheres.length; j++) {
+                const other = spheres[j];
+                const dist = sphere.position.distanceTo(other.position);
+                const minBox = 1.4;
+                if (dist < minBox) {
+                    const push = new THREE.Vector3().subVectors(sphere.position, other.position).normalize().multiplyScalar(0.01);
+                    sphere.userData.velocity.add(push);
+                    other.userData.velocity.sub(push);
+                }
+            }
+
+            // Rotation
+            sphere.rotation.y += sphere.userData.velocity.length() * 0.2;
         });
 
         renderer.render(scene, camera);
     }
 
-    function shakeSpheres() {
-        spheres.forEach(sphere => {
-            sphere.userData.velocity.set(
-                (Math.random() - 0.5) * 0.5,
-                (Math.random() - 0.5) * 0.5,
-                (Math.random() - 0.5) * 0.5
-            );
+    // AI Background Removal Function
+    async function processFaceImage(imgSource) {
+        if (!net) return imgSource.src;
+
+        const segmentation = await net.segmentPerson(imgSource, {
+            flipHorizontal: false,
+            internalResolution: 'medium',
+            segmentationThreshold: 0.7
         });
-        setTimeout(() => {
-            spheres.forEach(sphere => {
-                sphere.userData.velocity.multiplyScalar(0.1);
-            });
-        }, 1000);
+
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = imgSource.width || imgSource.videoWidth;
+        tempCanvas.height = imgSource.height || imgSource.videoHeight;
+        const ctx = tempCanvas.getContext('2d');
+        ctx.drawImage(imgSource, 0, 0);
+
+        const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+        const data = imageData.data;
+
+        // Apply Mask (remove background)
+        for (let i = 0; i < segmentation.data.length; i++) {
+            if (segmentation.data[i] === 0) { // Background
+                data[i * 4 + 3] = 0; // Set Alpha to 0
+            }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+        
+        // Final square crop for texture
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = 256;
+        finalCanvas.height = 256;
+        const fctx = finalCanvas.getContext('2d');
+        const size = Math.min(tempCanvas.width, tempCanvas.height);
+        fctx.drawImage(tempCanvas, (tempCanvas.width-size)/2, (tempCanvas.height-size)/2, size, size, 0, 0, 256, 256);
+        
+        return finalCanvas.toDataURL('image/png');
     }
 
     // --- Face Capture Logic ---
@@ -142,21 +212,16 @@ document.addEventListener('DOMContentLoaded', () => {
             enableCameraBtn.style.display = 'none';
             takePhotoBtn.style.display = 'inline-block';
         } catch (err) {
-            alert('카메라를 켤 수 없습니다.');
+            alert('카메라 권한을 허용해 주세요.');
         }
     });
 
-    takePhotoBtn.addEventListener('click', () => {
-        const context = canvas.getContext('2d');
-        const size = Math.min(video.videoWidth, video.videoHeight);
-        canvas.width = 256; // Power of 2 for Three.js textures
-        canvas.height = 256;
-        context.drawImage(video, (video.videoWidth-size)/2, (video.videoHeight-size)/2, size, size, 0, 0, 256, 256);
-        
-        capturedFaceDataUrl = canvas.toDataURL('image/png');
+    takePhotoBtn.addEventListener('click', async () => {
+        takePhotoBtn.textContent = "Processing...";
+        capturedFaceDataUrl = await processFaceImage(video);
         facePreview.style.backgroundImage = `url(${capturedFaceDataUrl})`;
         
-        // Update 3D scene textures
+        // Update 3D scene
         createSpheres();
 
         // Stop camera
@@ -164,20 +229,23 @@ document.addEventListener('DOMContentLoaded', () => {
         tracks.forEach(t => t.stop());
         videoContainer.style.display = 'none';
         takePhotoBtn.style.display = 'none';
+        takePhotoBtn.textContent = "TAKE PHOTO";
         enableCameraBtn.style.display = 'inline-block';
     });
 
     triggerUploadBtn.addEventListener('click', () => uploadPhotoInput.click());
-    uploadPhotoInput.addEventListener('change', (e) => {
+    uploadPhotoInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                capturedFaceDataUrl = event.target.result;
+            triggerUploadBtn.textContent = "Processing...";
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            img.onload = async () => {
+                capturedFaceDataUrl = await processFaceImage(img);
                 facePreview.style.backgroundImage = `url(${capturedFaceDataUrl})`;
                 createSpheres();
+                triggerUploadBtn.textContent = "UPLOAD PHOTO";
             };
-            reader.readAsDataURL(file);
         }
     });
 
@@ -187,7 +255,15 @@ document.addEventListener('DOMContentLoaded', () => {
         isSpinning = true;
 
         handle.classList.add('spin');
-        shakeSpheres();
+        
+        // Apply Impulse (Shaking)
+        spheres.forEach(sphere => {
+            sphere.userData.velocity.set(
+                (Math.random() - 0.5) * 0.8,
+                (Math.random() + 0.5) * 0.5,
+                (Math.random() - 0.5) * 0.8
+            );
+        });
 
         setTimeout(() => {
             dropCapsule();
@@ -228,11 +304,8 @@ document.addEventListener('DOMContentLoaded', () => {
             capsuleTop.style.backgroundColor = '#fff';
         }
         
-        // Set random positive message
         const randomMsg = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
         itemName.textContent = randomMsg;
-        itemName.style.fontSize = '8px';
-        itemName.style.lineHeight = '1.4';
 
         capsuleContainer.classList.remove('open');
         modal.style.display = 'flex';
