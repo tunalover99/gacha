@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const innerCapsulesContainer = document.getElementById('inner-capsules');
+    // --- Elements ---
     const handle = document.getElementById('handle');
     const spinButton = document.getElementById('spin-button');
     const chute = document.getElementById('chute');
     const modal = document.getElementById('result-modal');
+    const globeContainer = document.querySelector('.globe-container');
     
-    // Face Capture Elements
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const enableCameraBtn = document.getElementById('enable-camera');
@@ -15,13 +15,125 @@ document.addEventListener('DOMContentLoaded', () => {
     const facePreview = document.getElementById('face-preview');
     const videoContainer = document.querySelector('.video-container');
 
+    // --- State ---
     let capturedFaceDataUrl = null;
     let isSpinning = false;
-    const colors = ['#ff5f5f', '#5fafff', '#5fff7f', '#ffff5f', '#af5fff', '#ffa500'];
+    const positiveMessages = [
+        "너의 미래는 밝게 빛나고 있어!",
+        "오늘의 한 걸음이 위대한 내일이 될 거야.",
+        "너는 이미 충분히 멋진 사람이야.",
+        "네가 가는 길이 곧 정답이 될 거야.",
+        "작은 노력이 모여 찬란한 꽃을 피울 거야.",
+        "네 안의 무한한 가능성을 믿어봐!",
+        "세상은 너의 도전을 기다리고 있어.",
+        "지금의 시련은 너를 더 단단하게 만들 거야.",
+        "너를 응원하는 우주의 기운을 느껴봐.",
+        "포기하지 않는 너의 모습이 가장 아름다워.",
+        "기적은 네가 믿는 순간 시작될 거야.",
+        "너는 사랑받기 위해 태어난 소중한 존재야."
+    ];
+
+    // --- Three.js Setup (3D Sphere Gacha) ---
+    let scene, camera, renderer, spheres = [];
+    const sphereCount = 20;
+
+    function init3D() {
+        const width = globeContainer.clientWidth;
+        const height = globeContainer.clientHeight;
+
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        camera.position.z = 5;
+
+        renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false });
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(window.devicePixelRatio / 4); // Pixelated effect
+        globeContainer.appendChild(renderer.domElement);
+
+        const light = new THREE.PointLight(0xffffff, 1, 100);
+        light.position.set(5, 5, 5);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x404040));
+
+        createSpheres();
+        animate();
+    }
+
+    function createSpheres() {
+        spheres.forEach(s => scene.remove(s));
+        spheres = [];
+
+        const geometry = new THREE.SphereGeometry(0.8, 32, 32);
+        const textureLoader = new THREE.TextureLoader();
+        
+        for (let i = 0; i < sphereCount; i++) {
+            let material;
+            if (capturedFaceDataUrl) {
+                const texture = textureLoader.load(capturedFaceDataUrl);
+                material = new THREE.MeshStandardMaterial({ 
+                    map: texture,
+                    roughness: 0.2,
+                    metalness: 0.1
+                });
+            } else {
+                const color = new THREE.Color().setHSL(Math.random(), 0.7, 0.5);
+                material = new THREE.MeshStandardMaterial({ color: color });
+            }
+
+            const sphere = new THREE.Mesh(geometry, material);
+            
+            // Random initial pos within bounds
+            sphere.position.set(
+                (Math.random() - 0.5) * 4,
+                (Math.random() - 0.5) * 4,
+                (Math.random() - 0.5) * 2
+            );
+            
+            // Random velocity
+            sphere.userData.velocity = new THREE.Vector3(
+                (Math.random() - 0.5) * 0.05,
+                (Math.random() - 0.5) * 0.05,
+                (Math.random() - 0.5) * 0.05
+            );
+
+            scene.add(sphere);
+            spheres.push(sphere);
+        }
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+
+        spheres.forEach(sphere => {
+            // Collision with boundaries
+            const bounds = 2.5;
+            if (Math.abs(sphere.position.x) > bounds) sphere.userData.velocity.x *= -1;
+            if (Math.abs(sphere.position.y) > bounds) sphere.userData.velocity.y *= -1;
+            if (Math.abs(sphere.position.z) > 1.5) sphere.userData.velocity.z *= -1;
+
+            sphere.position.add(sphere.userData.velocity);
+            sphere.rotation.y += 0.01;
+        });
+
+        renderer.render(scene, camera);
+    }
+
+    function shakeSpheres() {
+        spheres.forEach(sphere => {
+            sphere.userData.velocity.set(
+                (Math.random() - 0.5) * 0.5,
+                (Math.random() - 0.5) * 0.5,
+                (Math.random() - 0.5) * 0.5
+            );
+        });
+        setTimeout(() => {
+            spheres.forEach(sphere => {
+                sphere.userData.velocity.multiplyScalar(0.1);
+            });
+        }, 1000);
+    }
 
     // --- Face Capture Logic ---
-
-    // Enable Camera
     enableCameraBtn.addEventListener('click', async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -30,35 +142,31 @@ document.addEventListener('DOMContentLoaded', () => {
             enableCameraBtn.style.display = 'none';
             takePhotoBtn.style.display = 'inline-block';
         } catch (err) {
-            alert('카메라를 켤 수 없습니다: ' + err.message);
+            alert('카메라를 켤 수 없습니다.');
         }
     });
 
-    // Take Photo
     takePhotoBtn.addEventListener('click', () => {
         const context = canvas.getContext('2d');
-        // Square crop for face
         const size = Math.min(video.videoWidth, video.videoHeight);
-        const sourceX = (video.videoWidth - size) / 2;
-        const sourceY = (video.videoHeight - size) / 2;
-        
-        canvas.width = 160;
-        canvas.height = 160;
-        context.drawImage(video, sourceX, sourceY, size, size, 0, 0, 160, 160);
+        canvas.width = 256; // Power of 2 for Three.js textures
+        canvas.height = 256;
+        context.drawImage(video, (video.videoWidth-size)/2, (video.videoHeight-size)/2, size, size, 0, 0, 256, 256);
         
         capturedFaceDataUrl = canvas.toDataURL('image/png');
-        updateFaceUI();
+        facePreview.style.backgroundImage = `url(${capturedFaceDataUrl})`;
         
+        // Update 3D scene textures
+        createSpheres();
+
         // Stop camera
-        const stream = video.srcObject;
-        const tracks = stream.getTracks();
-        tracks.forEach(track => track.stop());
+        const tracks = video.srcObject.getTracks();
+        tracks.forEach(t => t.stop());
         videoContainer.style.display = 'none';
         takePhotoBtn.style.display = 'none';
         enableCameraBtn.style.display = 'inline-block';
     });
 
-    // Upload Photo
     triggerUploadBtn.addEventListener('click', () => uploadPhotoInput.click());
     uploadPhotoInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -66,58 +174,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const reader = new FileReader();
             reader.onload = (event) => {
                 capturedFaceDataUrl = event.target.result;
-                updateFaceUI();
+                facePreview.style.backgroundImage = `url(${capturedFaceDataUrl})`;
+                createSpheres();
             };
             reader.readAsDataURL(file);
         }
     });
 
-    function updateFaceUI() {
-        if (capturedFaceDataUrl) {
-            facePreview.style.backgroundImage = `url(${capturedFaceDataUrl})`;
-            // Re-init capsules to show new face
-            initCapsules();
-        }
-    }
-
-    // --- Gacha Logic ---
-
-    function initCapsules() {
-        innerCapsulesContainer.innerHTML = '';
-        for (let i = 0; i < 25; i++) {
-            const capsule = document.createElement('div');
-            capsule.className = 'capsule';
-            
-            const left = Math.random() * 220 + 20;
-            const top = Math.random() * 180 + 30;
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            const rotation = Math.random() * 360;
-            
-            capsule.style.left = `${left}px`;
-            capsule.style.top = `${top}px`;
-            capsule.style.transform = `rotate(${rotation}deg)`;
-            
-            if (capturedFaceDataUrl) {
-                capsule.style.backgroundImage = `url(${capturedFaceDataUrl})`;
-            } else {
-                capsule.style.backgroundColor = color;
-            }
-            
-            innerCapsulesContainer.appendChild(capsule);
-        }
-    }
-
+    // --- Gacha Control ---
     function spinGacha() {
         if (isSpinning) return;
         isSpinning = true;
 
         handle.classList.add('spin');
-        
-        const capsules = document.querySelectorAll('.inner-capsules .capsule');
-        capsules.forEach(cap => {
-            cap.style.transition = 'all 0.3s steps(5)';
-            cap.style.transform = `translate(${Math.random()*20-10}px, ${Math.random()*20-10}px) rotate(${Math.random()*360}deg)`;
-        });
+        shakeSpheres();
 
         setTimeout(() => {
             dropCapsule();
@@ -136,8 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (capturedFaceDataUrl) {
             fallingCap.style.backgroundImage = `url(${capturedFaceDataUrl})`;
         } else {
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            fallingCap.style.backgroundColor = color;
+            fallingCap.style.backgroundColor = '#fecb05';
         }
         
         chute.appendChild(fallingCap);
@@ -151,16 +220,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function showResult() {
         const capsuleTop = document.getElementById('capsule-top');
         const capsuleContainer = document.getElementById('capsule-result-container');
+        const itemName = document.getElementById('item-name');
 
         if (capturedFaceDataUrl) {
             capsuleTop.style.backgroundImage = `url(${capturedFaceDataUrl})`;
-            capsuleTop.style.backgroundSize = 'cover';
-            capsuleTop.style.backgroundPosition = 'center';
         } else {
-            capsuleTop.style.backgroundImage = 'none';
             capsuleTop.style.backgroundColor = '#fff';
         }
         
+        // Set random positive message
+        const randomMsg = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
+        itemName.textContent = randomMsg;
+        itemName.style.fontSize = '8px';
+        itemName.style.lineHeight = '1.4';
+
         capsuleContainer.classList.remove('open');
         modal.style.display = 'flex';
 
@@ -172,20 +245,9 @@ document.addEventListener('DOMContentLoaded', () => {
     handle.addEventListener('click', spinGacha);
     spinButton.addEventListener('click', spinGacha);
 
-    initCapsules();
-
-    // Contact form (simplified)
-    const contactForm = document.getElementById('contact-form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert('THANK YOU FOR MESSAGE!');
-            contactForm.reset();
-        });
-    }
+    init3D();
 });
 
 function closeModal() {
-    const modal = document.getElementById('result-modal');
-    modal.style.display = 'none';
+    document.getElementById('result-modal').style.display = 'none';
 }
