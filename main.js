@@ -147,73 +147,46 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function captureFace() {
         if (!video.srcObject) return;
+
+        // --- 최적화: 더 작은 이미지로 처리 ---
+        const tempCanvas = document.createElement('canvas');
+        const ctx = tempCanvas.getContext('2d');
+
+        // 처리할 해상도를 설정합니다. 값이 낮을수록 빠릅니다.
+        const scale = 0.5; 
+        const processWidth = video.videoWidth * scale;
+        const processHeight = video.videoHeight * scale;
+        tempCanvas.width = processWidth;
+        tempCanvas.height = processHeight;
+
+        // 웹캠 비디오 프레임을 작은 캔버스에 그립니다.
+        ctx.drawImage(video, 0, 0, processWidth, processHeight);
+
+        // 1. 사람 분할 (작아진 캔버스 이미지로 수행)
         if (!segmenter) {
             alert("모델 로딩 중입니다.");
             return;
         }
-
-        takePhotoBtn.textContent = "WAIT...";
-
-        // 1. 사람 분할
-        const segmentation = await segmenter.segmentPeople(video);
+        const segmentation = await segmenter.segmentPeople(tempCanvas);
         if (segmentation.length === 0) {
-            alert("사람을 찾을 수 없습니다.");
-            takePhotoBtn.textContent = "TAKE PHOTO";
+            console.log("No person detected");
             return;
         }
 
         // 2. 배경 제거
-        const foregroundThreshold = 0.5;
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = video.videoWidth;
-        tempCanvas.height = video.videoHeight;
-        const ctx = tempCanvas.getContext('2d');
-        ctx.drawImage(video, 0, 0);
-
-        const personMask = await bodySegmentation.toBinaryMask(
-            segmentation, {r: 0, g: 0, b: 0, a: 0}, {r: 0, g: 0, b: 0, a: 255},
-            false, foregroundThreshold
+        const personMask = await bodySegmentation.toBinaryMask(segmentation, {r: 0, g: 0, b: 0, a: 0}, {r: 0, g: 0, b: 0, a: 255});
+        
+        await bodySegmentation.drawMask(
+            tempCanvas, 
+            tempCanvas, 
+            personMask, 
+            1.0, 
+            0 
         );
 
-        // 배경을 투명하게 만들기 위해 직접 처리 (drawMask는 불투명 배경을 만들 수 있음)
-        const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-        for (let i = 0; i < personMask.data.length; i++) {
-            if (personMask.data[i] === 0) { // Background
-                imageData.data[i * 4 + 3] = 0; // Alpha to 0
-            }
-        }
-        ctx.putImageData(imageData, 0, 0);
-
-        // 3. 얼굴만 크롭 (BlazeFace 연동)
-        const predictions = await faceModel.estimateFaces(video, false);
-        let finalCanvas = tempCanvas;
-        
-        if (predictions.length > 0) {
-            const face = predictions[0];
-            const start = face.topLeft;
-            const end = face.bottomRight;
-            const size = [end[0] - start[0], end[1] - start[1]];
-            
-            finalCanvas = document.createElement('canvas');
-            finalCanvas.width = 256;
-            finalCanvas.height = 256;
-            const fctx = finalCanvas.getContext('2d');
-            
-            fctx.beginPath();
-            fctx.arc(128, 128, 120, 0, Math.PI * 2);
-            fctx.clip();
-            
-            const margin = 0.3;
-            fctx.drawImage(tempCanvas, 
-                start[0] - size[0]*margin, start[1] - size[1]*margin, 
-                size[0]*(1+margin*2), size[1]*(1+margin*2), 
-                0, 0, 256, 256
-            );
-        }
-
-        // 4. 데이터 URL로 변환
-        capturedFaceDataUrl = finalCanvas.toDataURL('image/png');
-        console.log("Face captured with background removed");
+        // 3. 데이터 URL로 변환
+        capturedFaceDataUrl = tempCanvas.toDataURL('image/png');
+        console.log("Face captured with background removed (optimized)");
 
         // 가챠 머신 UI 업데이트
         facePreview.style.display = 'none';
@@ -221,7 +194,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         capturedFaceImg.style.display = 'block';
 
         createSpheres();
-        takePhotoBtn.textContent = "TAKE PHOTO";
         stopWebcam();
     }
 
