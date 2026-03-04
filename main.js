@@ -145,7 +145,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             return null;
         }
 
-        // Detect Face
         const predictions = await model.estimateFaces(imgSource, false);
 
         if (predictions.length === 0) {
@@ -158,25 +157,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         const end = face.bottomRight;
         const size = [end[0] - start[0], end[1] - start[1]];
 
-        // Create Canvas for Processing
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = 256;
         tempCanvas.height = 256;
         const ctx = tempCanvas.getContext('2d');
 
-        // Draw Circular Mask
+        // 배경을 투명하게 초기화 (확실히 하기 위함)
+        ctx.clearRect(0, 0, 256, 256);
+
+        // 원형 마스크 생성 (얼굴만 남기기)
+        ctx.save();
         ctx.beginPath();
-        ctx.arc(128, 128, 128, 0, Math.PI * 2);
+        ctx.arc(128, 128, 120, 0, Math.PI * 2); // 약간의 여유를 둠
         ctx.clip();
 
-        // Draw the Detected Face
-        const margin = 0.2; // Add some space around face
+        const margin = 0.3; 
         const sourceX = start[0] - size[0] * margin;
         const sourceY = start[1] - size[1] * margin;
         const sourceWidth = size[0] * (1 + margin * 2);
         const sourceHeight = size[1] * (1 + margin * 2);
 
         ctx.drawImage(imgSource, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, 256, 256);
+        ctx.restore();
 
         return tempCanvas.toDataURL('image/png');
     }

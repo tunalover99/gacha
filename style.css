@@ -303,8 +303,9 @@ body {
 .paper-content #item-name { 
   font-size: 6px; 
   color: var(--pixel-black); 
-  line-height: 1.2;
+  line-height: 1.4;
   word-break: keep-all;
+  text-shadow: none !important; /* 그림자 제거 */
 }
 
 /* Footer */
