@@ -15,16 +15,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const facePreview = document.getElementById('face-preview');
     const videoContainer = document.querySelector('.video-container');
 
-    // --- AI Model Loading (BodyPix) ---
-    let net;
+    // --- Face Recognition Model (BlazeFace) ---
+    let model;
     async function loadModel() {
-        net = await bodyPix.load({
-            architecture: 'MobileNetV1',
-            outputStride: 16,
-            multiplier: 0.75,
-            quantBytes: 2
-        });
-        console.log("AI Model Loaded");
+        model = await blazeface.load();
+        console.log("BlazeFace Model Loaded");
     }
     loadModel();
 
@@ -63,13 +58,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false });
         renderer.setSize(width, height);
-        renderer.setPixelRatio(window.devicePixelRatio / 4); // Pixelated effect
+        renderer.setPixelRatio(window.devicePixelRatio / 4);
         globeContainer.appendChild(renderer.domElement);
 
         const light = new THREE.PointLight(0xffffff, 1, 100);
         light.position.set(5, 5, 5);
         scene.add(light);
-        scene.add(new THREE.AmbientLight(0x606060));
+        scene.add(new THREE.AmbientLight(0x808080));
 
         createSpheres();
         animate();
@@ -89,7 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 material = new THREE.MeshStandardMaterial({ 
                     map: texture,
                     transparent: true,
-                    roughness: 0.2,
+                    roughness: 0.1,
                     metalness: 0.1
                 });
             } else {
@@ -98,15 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const sphere = new THREE.Mesh(geometry, material);
-            
-            // Random initial pos (stacked at bottom initially)
-            sphere.position.set(
-                (Math.random() - 0.5) * 3,
-                -1.5 + (Math.random() * 0.5), // Start at bottom
-                (Math.random() - 0.5) * 1.5
-            );
-            
-            // Initial velocity is zero (static)
+            sphere.position.set((Math.random()-0.5)*3, -1.5+(Math.random()*0.5), (Math.random()-0.5)*1.5);
             sphere.userData.velocity = new THREE.Vector3(0, 0, 0);
 
             scene.add(sphere);
@@ -116,94 +103,85 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function animate() {
         requestAnimationFrame(animate);
-
         spheres.forEach((sphere, idx) => {
-            // Apply Gravity
             sphere.userData.velocity.y -= gravity;
-
-            // Apply Velocity
             sphere.position.add(sphere.userData.velocity);
 
-            // Floor & Wall Collision (simple logic)
             const floorLevel = -2.2;
             const wallX = 2.4;
             const wallZ = 1.4;
 
             if (sphere.position.y <= floorLevel) {
                 sphere.position.y = floorLevel;
-                sphere.userData.velocity.y *= -0.5; // Bounce
-                sphere.userData.velocity.multiplyScalar(friction); // Ground friction
+                sphere.userData.velocity.y *= -0.4;
+                sphere.userData.velocity.multiplyScalar(friction);
             }
-
             if (Math.abs(sphere.position.x) > wallX) {
-                sphere.position.x = Math.sign(sphere.position.x) * wallX;
+                sphere.position.x = Math.sign(sphere.position.x)*wallX;
                 sphere.userData.velocity.x *= -wallFriction;
             }
-
             if (Math.abs(sphere.position.z) > wallZ) {
-                sphere.position.z = Math.sign(sphere.position.z) * wallZ;
+                sphere.position.z = Math.sign(sphere.position.z)*wallZ;
                 sphere.userData.velocity.z *= -wallFriction;
             }
-
-            // Simple Sphere-Sphere collision (pseudo-repulsion)
             for (let j = idx + 1; j < spheres.length; j++) {
                 const other = spheres[j];
                 const dist = sphere.position.distanceTo(other.position);
-                const minBox = 1.4;
-                if (dist < minBox) {
+                if (dist < 1.4) {
                     const push = new THREE.Vector3().subVectors(sphere.position, other.position).normalize().multiplyScalar(0.01);
                     sphere.userData.velocity.add(push);
                     other.userData.velocity.sub(push);
                 }
             }
-
-            // Rotation
-            sphere.rotation.y += sphere.userData.velocity.length() * 0.2;
+            sphere.rotation.y += sphere.userData.velocity.length() * 0.1;
         });
-
         renderer.render(scene, camera);
     }
 
-    // AI Background Removal Function
+    // --- AI Face Crop & Recognition Function ---
     async function processFaceImage(imgSource) {
-        if (!net) return imgSource.src;
-
-        const segmentation = await net.segmentPerson(imgSource, {
-            flipHorizontal: false,
-            internalResolution: 'medium',
-            segmentationThreshold: 0.7
-        });
-
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = imgSource.width || imgSource.videoWidth;
-        tempCanvas.height = imgSource.height || imgSource.videoHeight;
-        const ctx = tempCanvas.getContext('2d');
-        ctx.drawImage(imgSource, 0, 0);
-
-        const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-        const data = imageData.data;
-
-        // Apply Mask (remove background)
-        for (let i = 0; i < segmentation.data.length; i++) {
-            if (segmentation.data[i] === 0) { // Background
-                data[i * 4 + 3] = 0; // Set Alpha to 0
-            }
+        if (!model) {
+            alert("모델이 로드 중입니다. 잠시만 기다려 주세요.");
+            return null;
         }
 
-        ctx.putImageData(imageData, 0, 0);
-        
-        // Final square crop for texture
-        const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = 256;
-        finalCanvas.height = 256;
-        const fctx = finalCanvas.getContext('2d');
-        const size = Math.min(tempCanvas.width, tempCanvas.height);
-        fctx.drawImage(tempCanvas, (tempCanvas.width-size)/2, (tempCanvas.height-size)/2, size, size, 0, 0, 256, 256);
-        
-        return finalCanvas.toDataURL('image/png');
+        // Detect Face
+        const predictions = await model.estimateFaces(imgSource, false);
+
+        if (predictions.length === 0) {
+            alert("얼굴을 찾을 수 없습니다. 정면을 응시해 주세요.");
+            return null;
+        }
+
+        const face = predictions[0];
+        const start = face.topLeft;
+        const end = face.bottomRight;
+        const size = [end[0] - start[0], end[1] - start[1]];
+
+        // Create Canvas for Processing
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = 256;
+        tempCanvas.height = 256;
+        const ctx = tempCanvas.getContext('2d');
+
+        // Draw Circular Mask
+        ctx.beginPath();
+        ctx.arc(128, 128, 128, 0, Math.PI * 2);
+        ctx.clip();
+
+        // Draw the Detected Face
+        const margin = 0.2; // Add some space around face
+        const sourceX = start[0] - size[0] * margin;
+        const sourceY = start[1] - size[1] * margin;
+        const sourceWidth = size[0] * (1 + margin * 2);
+        const sourceHeight = size[1] * (1 + margin * 2);
+
+        ctx.drawImage(imgSource, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, 256, 256);
+
+        return tempCanvas.toDataURL('image/png');
     }
 
-    // --- Face Capture Logic ---
+    // --- Face Capture UI Logic ---
     enableCameraBtn.addEventListener('click', async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -212,63 +190,58 @@ document.addEventListener('DOMContentLoaded', async () => {
             enableCameraBtn.style.display = 'none';
             takePhotoBtn.style.display = 'inline-block';
         } catch (err) {
-            alert('카메라 권한을 허용해 주세요.');
+            alert('카메라 접근 권한이 필요합니다.');
         }
     });
 
     takePhotoBtn.addEventListener('click', async () => {
-        takePhotoBtn.textContent = "Processing...";
-        capturedFaceDataUrl = await processFaceImage(video);
-        facePreview.style.backgroundImage = `url(${capturedFaceDataUrl})`;
-        
-        // Update 3D scene
-        createSpheres();
-
-        // Stop camera
-        const tracks = video.srcObject.getTracks();
-        tracks.forEach(t => t.stop());
-        videoContainer.style.display = 'none';
-        takePhotoBtn.style.display = 'none';
+        takePhotoBtn.textContent = "WAIT...";
+        const result = await processFaceImage(video);
+        if (result) {
+            capturedFaceDataUrl = result;
+            facePreview.style.backgroundImage = `url(${capturedFaceDataUrl})`;
+            createSpheres();
+            
+            // Stop camera
+            const tracks = video.srcObject.getTracks();
+            tracks.forEach(t => t.stop());
+            videoContainer.style.display = 'none';
+            takePhotoBtn.style.display = 'none';
+            enableCameraBtn.style.display = 'inline-block';
+        }
         takePhotoBtn.textContent = "TAKE PHOTO";
-        enableCameraBtn.style.display = 'inline-block';
     });
 
     triggerUploadBtn.addEventListener('click', () => uploadPhotoInput.click());
     uploadPhotoInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file) {
-            triggerUploadBtn.textContent = "Processing...";
+            triggerUploadBtn.textContent = "WAIT...";
             const img = new Image();
             img.src = URL.createObjectURL(file);
             img.onload = async () => {
-                capturedFaceDataUrl = await processFaceImage(img);
-                facePreview.style.backgroundImage = `url(${capturedFaceDataUrl})`;
-                createSpheres();
+                const result = await processFaceImage(img);
+                if (result) {
+                    capturedFaceDataUrl = result;
+                    facePreview.style.backgroundImage = `url(${capturedFaceDataUrl})`;
+                    createSpheres();
+                }
                 triggerUploadBtn.textContent = "UPLOAD PHOTO";
             };
         }
     });
 
-    // --- Gacha Control ---
+    // --- Gacha Control Logic ---
     function spinGacha() {
         if (isSpinning) return;
         isSpinning = true;
-
         handle.classList.add('spin');
         
-        // Apply Impulse (Shaking)
         spheres.forEach(sphere => {
-            sphere.userData.velocity.set(
-                (Math.random() - 0.5) * 0.8,
-                (Math.random() + 0.5) * 0.5,
-                (Math.random() - 0.5) * 0.8
-            );
+            sphere.userData.velocity.set((Math.random()-0.5)*0.8, (Math.random()+0.5)*0.5, (Math.random()-0.5)*0.8);
         });
 
-        setTimeout(() => {
-            dropCapsule();
-        }, 600);
-
+        setTimeout(() => dropCapsule(), 600);
         setTimeout(() => {
             handle.classList.remove('spin');
             isSpinning = false;
@@ -278,15 +251,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     function dropCapsule() {
         const fallingCap = document.createElement('div');
         fallingCap.className = 'capsule falling-capsule';
-        
         if (capturedFaceDataUrl) {
             fallingCap.style.backgroundImage = `url(${capturedFaceDataUrl})`;
         } else {
             fallingCap.style.backgroundColor = '#fecb05';
         }
-        
         chute.appendChild(fallingCap);
-
         setTimeout(() => {
             showResult();
             fallingCap.remove();
@@ -300,27 +270,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (capturedFaceDataUrl) {
             capsuleTop.style.backgroundImage = `url(${capturedFaceDataUrl})`;
+            capsuleTop.style.backgroundSize = 'cover';
         } else {
             capsuleTop.style.backgroundColor = '#fff';
         }
         
         const randomMsg = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
         itemName.textContent = randomMsg;
-
-        capsuleContainer.classList.remove('open');
         modal.style.display = 'flex';
-
-        setTimeout(() => {
-            capsuleContainer.classList.add('open');
-        }, 500);
+        setTimeout(() => capsuleContainer.classList.add('open'), 500);
     }
 
     handle.addEventListener('click', spinGacha);
     spinButton.addEventListener('click', spinGacha);
-
     init3D();
 });
 
 function closeModal() {
-    document.getElementById('result-modal').style.display = 'none';
+    const modal = document.getElementById('result-modal');
+    const capsuleContainer = document.getElementById('capsule-result-container');
+    capsuleContainer.classList.remove('open');
+    modal.style.display = 'none';
 }
