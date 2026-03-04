@@ -15,12 +15,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const facePreview = document.getElementById('face-preview');
     const capturedFaceImg = document.getElementById('captured-face');
     const videoContainer = document.querySelector('.video-container');
+    const loadingStatus = document.getElementById('loading-status');
 
     // --- AI Models Loading ---
     let faceModel;
     let segmenter;
 
     async function loadModels() {
+        await tf.setBackend('webgl');
         faceModel = await blazeface.load();
         const segmenterModel = bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation;
         const segmenterConfig = {
@@ -30,6 +32,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
         segmenter = await bodySegmentation.createSegmenter(segmenterModel, segmenterConfig);
         console.log("AI Models Loaded");
+        // 모델 로딩 완료 후 UI 업데이트
+        loadingStatus.style.display = 'none';
+        enableCameraBtn.disabled = false;
+        takePhotoBtn.disabled = false;
+        triggerUploadBtn.disabled = false;
     }
     loadModels();
 

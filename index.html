@@ -23,10 +23,11 @@
         <section class="face-capture-panel">
             <h2 class="pixel-text">CAPTURE YOUR FACE</h2>
             <div class="capture-controls">
-                <button id="enable-camera" class="retro-btn">ON CAMERA</button>
-                <button id="take-photo" class="retro-btn" style="display:none;">TAKE PHOTO</button>
+                <p id="loading-status" class="pixel-text">AI 모델 로딩 중...</p>
+                <button id="enable-camera" class="retro-btn" disabled>ON CAMERA</button>
+                <button id="take-photo" class="retro-btn" style="display:none;" disabled>TAKE PHOTO</button>
                 <input type="file" id="upload-photo" accept="image/*" style="display:none;">
-                <button id="trigger-upload" class="retro-btn">UPLOAD PHOTO</button>
+                <button id="trigger-upload" class="retro-btn" disabled>UPLOAD PHOTO</button>
             </div>
             <div class="video-container" style="display:none;">
                 <video id="video" width="160" height="120" autoplay playsinline></video>
