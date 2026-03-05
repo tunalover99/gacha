@@ -15,6 +15,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoContainer = document.querySelector('.video-container');
     const loadingStatus = document.getElementById('loading-status');
 
+    // Emotion Detection Elements
+    const startEmotionBtn = document.getElementById('start-emotion');
+    const emotionWebcamContainer = document.getElementById('webcam-container');
+    const emotionLabelContainer = document.getElementById('label-container');
+
     // --- State Variables ---
     let segmenter;
     let capturedFaceDataUrl = null;
@@ -103,6 +108,59 @@ document.addEventListener('DOMContentLoaded', () => {
         facePreview.style.display = 'none';
         createSpheres(); // Refresh gacha capsules
     }
+
+    // --- Emotion Detection Logic (Teachable Machine) ---
+    // Using a sample public model if user's local model is missing.
+    const EMOTION_URL = "https://teachablemachine.withgoogle.com/models/v6Hw-R9R-/"; 
+    let emotionModel, emotionWebcam, maxPredictions;
+
+    async function initEmotion() {
+        const modelURL = EMOTION_URL + "model.json";
+        const metadataURL = EMOTION_URL + "metadata.json";
+
+        try {
+            startEmotionBtn.disabled = true;
+            startEmotionBtn.textContent = "Loading Model...";
+            
+            emotionModel = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = emotionModel.getTotalClasses();
+
+            const flip = true; 
+            emotionWebcam = new tmImage.Webcam(200, 200, flip); 
+            await emotionWebcam.setup(); 
+            await emotionWebcam.play();
+            window.requestAnimationFrame(emotionLoop);
+
+            emotionWebcamContainer.appendChild(emotionWebcam.canvas);
+            emotionLabelContainer.innerHTML = "";
+            for (let i = 0; i < maxPredictions; i++) {
+                emotionLabelContainer.appendChild(document.createElement("div"));
+            }
+            startEmotionBtn.textContent = "SCANNING...";
+        } catch (error) {
+            console.error("Error loading emotion model:", error);
+            alert("감정 분석 모델을 로드하는 데 실패했습니다. (URL: " + EMOTION_URL + ")");
+            startEmotionBtn.disabled = false;
+            startEmotionBtn.textContent = "START SCAN";
+        }
+    }
+
+    async function emotionLoop() {
+        emotionWebcam.update(); 
+        await predictEmotion();
+        window.requestAnimationFrame(emotionLoop);
+    }
+
+    async function predictEmotion() {
+        const prediction = await emotionModel.predict(emotionWebcam.canvas);
+        for (let i = 0; i < maxPredictions; i++) {
+            const classPrediction =
+                prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(0) + "%";
+            emotionLabelContainer.childNodes[i].innerHTML = classPrediction;
+        }
+    }
+
+    startEmotionBtn.addEventListener('click', initEmotion);
 
     // --- Event Handlers ---
 

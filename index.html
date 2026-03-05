@@ -40,6 +40,16 @@
             </div>
         </section>
 
+        <!-- Emotion Detection Section -->
+        <section class="emotion-detection-panel pixel-border">
+            <h2 class="pixel-text">EMOTION SCANNER</h2>
+            <div class="emotion-controls">
+                <button type="button" id="start-emotion" class="retro-btn">START SCAN</button>
+            </div>
+            <div id="webcam-container" class="webcam-container"></div>
+            <div id="label-container" class="label-container pixel-text"></div>
+        </section>
+
         <section id="machine" class="machine-section">
             <div class="gacha-machine">
                 <!-- 상단 투명 돔 -->
@@ -140,7 +150,8 @@
     </div>
 
     <!-- AI & 3D Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-segmentation"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
