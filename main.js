@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Three.js Gacha Machine ---
     let scene, camera, renderer, spheres = [];
-    const sphereCount = 25;
+    const sphereCount = 20; // Reduced for performance with collisions
 
     function init3D() {
         const { clientWidth: width, clientHeight: height } = globeContainer;
@@ -281,18 +281,53 @@ document.addEventListener('DOMContentLoaded', () => {
         animate();
     }
 
-    function createSpheres() {
+    async function createSpheres() {
         spheres.forEach(s => scene.remove(s.mesh));
         spheres = [];
-        const geometry = new THREE.SphereGeometry(0.7, 32, 16);
+        const geometry = new THREE.SphereGeometry(0.7, 32, 32);
         const textureLoader = new THREE.TextureLoader();
-        const faceMaterial = capturedFaceDataUrl ? new THREE.MeshStandardMaterial({ map: textureLoader.load(capturedFaceDataUrl), roughness: 0.3 }) : null;
+        
+        let faceMaterial = null;
+        if (capturedFaceDataUrl) {
+            // Create a solid background texture for the face
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 256;
+            
+            // Fill background with a solid color (retro yellow)
+            ctx.fillStyle = '#fecb05';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw the captured face on top
+            const img = await new Promise((resolve) => {
+                const i = new Image();
+                i.onload = () => resolve(i);
+                i.src = capturedFaceDataUrl;
+            });
+            
+            // Map the image to fill the sphere surface better
+            // We use a slight offset to center it
+            const size = 200;
+            ctx.drawImage(img, (256 - size) / 2, (256 - size) / 2, size, size);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            faceMaterial = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.3 });
+        }
 
         for (let i = 0; i < sphereCount; i++) {
-            const material = faceMaterial ? faceMaterial : new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(Math.random(), 0.7, 0.6) });
+            const material = faceMaterial ? faceMaterial.clone() : new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(Math.random(), 0.7, 0.6) });
             const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4);
-            const sphere = { mesh, velocity: new THREE.Vector3(), angularVelocity: new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(0.05) };
+            
+            // Distribute spheres without initial overlap
+            mesh.position.set((Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 2);
+            
+            const sphere = { 
+                mesh, 
+                velocity: new THREE.Vector3(), 
+                angularVelocity: new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(0.05),
+                radius: 0.7
+            };
             spheres.push(sphere);
             scene.add(mesh);
         }
@@ -301,22 +336,59 @@ document.addEventListener('DOMContentLoaded', () => {
     function animate() {
         requestAnimationFrame(animate);
         const gravity = -0.01;
-        const bounce = -0.5;
-        const damping = 0.98;
+        const bounce = -0.6;
+        const damping = 0.99;
 
+        // Update positions and handle boundaries
         spheres.forEach(sphere => {
             sphere.velocity.y += gravity;
             sphere.mesh.position.add(sphere.velocity);
-            sphere.velocity.multiplyScalar(damping); // Air resistance
+            sphere.velocity.multiplyScalar(damping);
 
             sphere.mesh.rotation.x += sphere.angularVelocity.x;
             sphere.mesh.rotation.y += sphere.angularVelocity.y;
 
-            // Boundary collisions
-            if (sphere.mesh.position.y < -2.2) { sphere.mesh.position.y = -2.2; sphere.velocity.y *= bounce; }
-            if (Math.abs(sphere.mesh.position.x) > 2.4) { sphere.mesh.position.x = Math.sign(sphere.mesh.position.x) * 2.4; sphere.velocity.x *= bounce; }
-            if (Math.abs(sphere.mesh.position.z) > 1.4) { sphere.mesh.position.z = Math.sign(sphere.mesh.position.z) * 1.4; sphere.velocity.z *= bounce; }
+            // Boundary collisions (Globe limits)
+            if (sphere.mesh.position.y < -2.1) { sphere.mesh.position.y = -2.1; sphere.velocity.y *= bounce; }
+            if (sphere.mesh.position.y > 2.2) { sphere.mesh.position.y = 2.2; sphere.velocity.y *= bounce; }
+            if (Math.abs(sphere.mesh.position.x) > 2.3) { sphere.mesh.position.x = Math.sign(sphere.mesh.position.x) * 2.3; sphere.velocity.x *= bounce; }
+            if (Math.abs(sphere.mesh.position.z) > 1.3) { sphere.mesh.position.z = Math.sign(sphere.mesh.position.z) * 1.3; sphere.velocity.z *= bounce; }
         });
+
+        // Sphere-to-Sphere collisions
+        for (let i = 0; i < spheres.length; i++) {
+            for (let j = i + 1; j < spheres.length; j++) {
+                const s1 = spheres[i];
+                const s2 = spheres[j];
+                const diff = s1.mesh.position.clone().sub(s2.mesh.position);
+                const distance = diff.length();
+                const minDist = s1.radius + s2.radius;
+
+                if (distance < minDist) {
+                    // Collision detected
+                    const normal = diff.normalize();
+                    const overlap = minDist - distance;
+                    
+                    // Separate spheres
+                    s1.mesh.position.add(normal.clone().multiplyScalar(overlap / 2));
+                    s2.mesh.position.sub(normal.clone().multiplyScalar(overlap / 2));
+                    
+                    // Simple elastic collision response
+                    const relativeVelocity = s1.velocity.clone().sub(s2.velocity);
+                    const velocityAlongNormal = relativeVelocity.dot(normal);
+                    
+                    if (velocityAlongNormal < 0) {
+                        const restitution = 0.8;
+                        const impulseMagnitude = -(1 + restitution) * velocityAlongNormal;
+                        const impulse = normal.multiplyScalar(impulseMagnitude / 2);
+                        
+                        s1.velocity.add(impulse);
+                        s2.velocity.sub(impulse);
+                    }
+                }
+            }
+        }
+
         renderer.render(scene, camera);
     }
 
@@ -325,23 +397,32 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isSpinning) return;
         isSpinning = true;
         handle.classList.add('spin');
-        spheres.forEach(sphere => { // Give capsules a kick
-            sphere.velocity.set((Math.random() - 0.5) * 0.4, Math.random() * 0.8, (Math.random() - 0.5) * 0.4);
+        spheres.forEach(sphere => {
+            sphere.velocity.set((Math.random() - 0.5) * 0.5, Math.random() * 0.9, (Math.random() - 0.5) * 0.5);
         });
         setTimeout(dropCapsule, 800);
         setTimeout(() => { handle.classList.remove('spin'); isSpinning = false; }, 1200);
     }
 
-    function dropCapsule() {
+    async function dropCapsule() {
         const fallingCap = document.createElement('div');
         fallingCap.className = 'capsule falling-capsule';
-        const randomColor = new THREE.Color().setHSL(Math.random(), 0.8, 0.6).getStyle();
         
         if (capturedFaceDataUrl) {
-            fallingCap.style.backgroundImage = `url(${capturedFaceDataUrl})`;
+            // Create a preview image for the falling capsule without transparency
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 100;
+            canvas.height = 100;
+            ctx.fillStyle = '#fecb05';
+            ctx.fillRect(0, 0, 100, 100);
+            const img = await new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = capturedFaceDataUrl; });
+            ctx.drawImage(img, 10, 10, 80, 80);
+            
+            fallingCap.style.backgroundImage = `url(${canvas.toDataURL()})`;
             fallingCap.style.backgroundSize = 'cover';
         } else {
-            fallingCap.style.backgroundColor = randomColor;
+            fallingCap.style.backgroundColor = new THREE.Color().setHSL(Math.random(), 0.8, 0.6).getStyle();
         }
         chute.appendChild(fallingCap);
         setTimeout(() => { showResult(fallingCap.style.cssText); fallingCap.remove(); }, 800);

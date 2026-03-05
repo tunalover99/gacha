@@ -362,7 +362,23 @@ body {
     border: 2px solid var(--pixel-black);
 }
 
+.main-play-area {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-bottom: 60px;
+}
+
+.machine-section { margin-bottom: 0; }
+.emotion-detection-panel { margin-bottom: 0; min-width: 300px; }
+
 /* Responsive */
+@media (max-width: 850px) {
+  .main-play-area { flex-direction: column; align-items: center; }
+}
+
 @media (max-width: 600px) {
   .container { padding: 0 10px; }
 }
