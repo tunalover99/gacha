@@ -66,8 +66,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 return null;
             }
 
-            const personMask = await bodySegmentation.toBinaryMask(segmentation, { r: 0, g: 0, b: 0, a: 0 }, { r: 0, g: 0, b: 0, a: 255 });
-            await bodySegmentation.drawMask(tempCanvas, tempCanvas, personMask, 1.0, 0);
+            // Create a mask where the person is opaque and the background is transparent.
+            const personMask = await bodySegmentation.toBinaryMask(segmentation, {r:0,g:0,b:0,a:255}, {r:0,g:0,b:0,a:0});
+
+            // Get the pixel data from the canvas (which has the original image).
+            const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            // Apply the mask to the image data's alpha channel.
+            const data = imageData.data;
+            const maskData = personMask.data;
+            for (let i = 0; i < data.length; i += 4) {
+                // If the mask's alpha for this pixel is 0 (background), make the image pixel transparent.
+                if (maskData[i + 3] === 0) {
+                    data[i + 3] = 0;
+                }
+            }
+
+            // Put the modified image data back onto the canvas.
+            ctx.putImageData(imageData, 0, 0);
+            
             return tempCanvas.toDataURL('image/png');
 
         } catch (error) {
