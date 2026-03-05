@@ -19,6 +19,28 @@
     </header>
 
     <div class="container">
+... User modified the `new_string` content to be: <!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIXEL GACHA - Retro Face Simulator</title>
+    <meta name="description" content="2000년대 닌텐도 스타일의 레트로 가챠 시뮬레이터. 자신의 얼굴을 매핑한 특별한 가챠를 경험해보세요!">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="main-header">
+        <h1>PIXEL GACHA</h1>
+        <nav>
+            <a href="#machine">PLAY</a>
+            <a href="#about">INFO</a>
+            <a href="#contact">CONTACT</a>
+        </nav>
+    </header>
+
+    <div class="container">
+... (rest of the file remains same) ...
         <!-- Face Capture Section -->
         <section class="face-capture-panel">
             <h2 class="pixel-text">CAPTURE YOUR FACE</h2>
@@ -43,6 +65,24 @@
 
         <!-- Main Play Area: Machine + Scanner -->
         <div class="main-play-area">
+            <!-- Music Player Sidebar -->
+            <aside class="music-sidebar">
+                <div class="cd-player-panel pixel-border">
+                    <h2 class="pixel-text" style="font-size: 8px;">BGM</h2>
+                    <div id="cd-player" class="cd-player">
+                        <div class="cd-case">
+                            <div id="cd-disc" class="cd-disc">
+                                <div class="cd-hole"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="music-toggle" class="retro-btn" style="font-size: 8px; width: 100%;">PLAY</button>
+                    <audio id="bgm" loop>
+                        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+                    </audio>
+                </div>
+            </aside>
+
             <div class="machine-wrapper">
                 <section id="machine" class="machine-section">
                     <div class="gacha-machine">

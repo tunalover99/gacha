@@ -27,16 +27,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const emotionCaptureCanvas = document.getElementById('emotion-capture-canvas');
     const capturedEmotionResult = document.getElementById('captured-emotion-result');
 
+    // Music Elements
+    const musicToggleBtn = document.getElementById('music-toggle');
+    const bgm = document.getElementById('bgm');
+    const cdDisc = document.getElementById('cd-disc');
+
     // --- State Variables ---
     let segmenter;
     let capturedFaceDataUrl = null;
     let isSpinning = false;
+    let isMusicPlaying = false;
+
     const positiveMessages = [
         "너의 미래는 밝게 빛나고 있어!", "오늘의 한 걸음이 위대한 내일이 될 거야.", "너는 이미 충분히 멋진 사람이야.",
         "네가 가는 길이 곧 정답이 될 거야.", "작은 노력이 모여 찬란한 꽃을 피울 거야.", "네 안의 무한한 가능성을 믿어봐!",
         "세상은 너의 도전을 기다리고 있어.", "지금의 시련은 너를 더 단단하게 만들 거야.", "너를 응원하는 우주의 기운을 느껴봐!",
         "포기하지 않는 너의 모습이 가장 아름다워.", "기적은 네가 믿는 순간 시작될 거야.", "너는 사랑받기 위해 태어난 소중한 존재야."
     ];
+
+    // --- Music Logic ---
+    musicToggleBtn.addEventListener('click', () => {
+        if (isMusicPlaying) {
+            bgm.pause();
+            cdDisc.classList.remove('spinning');
+            musicToggleBtn.textContent = 'PLAY';
+        } else {
+            bgm.play().catch(e => console.error("Audio play failed:", e));
+            cdDisc.classList.add('spinning');
+            musicToggleBtn.textContent = 'STOP';
+        }
+        isMusicPlaying = !isMusicPlaying;
+    });
 
     // --- Core Logic ---
 

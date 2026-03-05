@@ -375,12 +375,79 @@ body {
   flex: 0 0 auto;
 }
 
+.music-sidebar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 250px;
+}
+
 .emotion-sidebar {
   position: absolute;
   right: 0;
   top: 0;
   width: 250px;
 }
+
+/* CD Player Styles */
+.cd-player-panel {
+    padding: 15px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.cd-player {
+    width: 120px;
+    height: 120px;
+    margin: 10px auto;
+    background: #333;
+    border: 4px solid var(--pixel-black);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.cd-case {
+    width: 100px;
+    height: 100px;
+    background: #222;
+    border: 2px solid var(--pixel-black);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cd-disc {
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, #888 20%, #bbb 21%, #bbb 40%, #888 41%, #888 60%, #bbb 61%);
+    border-radius: 50%;
+    border: 2px solid var(--pixel-black);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cd-disc.spinning {
+    animation: cd-spin 2s linear infinite;
+}
+
+@keyframes cd-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.cd-hole {
+    width: 15px;
+    height: 15px;
+    background: #333;
+    border-radius: 50%;
+    border: 2px solid var(--pixel-black);
+}
+
+/* ... existing styles ... */
 
 .emotion-detection-panel {
   margin-bottom: 0;
