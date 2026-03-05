@@ -43,50 +43,60 @@
 
         <!-- Main Play Area: Machine + Scanner -->
         <div class="main-play-area">
-            <section id="machine" class="machine-section">
-                <div class="gacha-machine">
-                    <!-- 상단 투명 돔 -->
-                    <div class="globe-container">
-                        <div class="inner-capsules" id="inner-capsules">
-                            <!-- JS로 캡슐들이 채워집니다 -->
-                        </div>
-                    </div>
-                    
-                    <!-- 기계 몸체 -->
-                    <div class="machine-body">
-                        <div class="logo">GACHA</div>
-                        <div class="coin-slot-area">
-                            <div class="coin-slot"></div>
-                            <div class="price-tag">500</div>
-                        </div>
-                        <div class="handle-area">
-                            <div class="handle" id="handle">
-                                <div class="handle-bar"></div>
-                                <div class="handle-center"></div>
+            <div class="machine-wrapper">
+                <section id="machine" class="machine-section">
+                    <div class="gacha-machine">
+                        <!-- 상단 투명 돔 -->
+                        <div class="globe-container">
+                            <div class="inner-capsules" id="inner-capsules">
+                                <!-- JS로 캡슐들이 채워집니다 -->
                             </div>
                         </div>
-                        <div class="exit-slot">
-                            <div class="chute" id="chute"></div>
+                        
+                        <!-- 기계 몸체 -->
+                        <div class="machine-body">
+                            <div class="logo">GACHA</div>
+                            <div class="coin-slot-area">
+                                <div class="coin-slot"></div>
+                                <div class="price-tag">500</div>
+                            </div>
+                            <div class="handle-area">
+                                <div class="handle" id="handle">
+                                    <div class="handle-bar"></div>
+                                    <div class="handle-center"></div>
+                                </div>
+                            </div>
+                            <div class="exit-slot">
+                                <div class="chute" id="chute"></div>
+                            </div>
                         </div>
+                        <div class="machine-base"></div>
                     </div>
-                    <div class="machine-base"></div>
-                </div>
-                
-                <div class="controls">
-                    <button id="spin-button" class="spin-btn">SPIN!</button>
-                    <p class="instruction pixel-text">PUSH START BUTTON!</p>
-                </div>
-            </section>
+                    
+                    <div class="controls">
+                        <button id="spin-button" class="spin-btn">SPIN!</button>
+                        <p class="instruction pixel-text">PUSH START BUTTON!</p>
+                    </div>
+                </section>
+            </div>
 
             <!-- Emotion Detection Section -->
-            <section class="emotion-detection-panel pixel-border">
-                <h2 class="pixel-text">EMOTION SCANNER</h2>
-                <div class="emotion-controls">
-                    <button type="button" id="start-emotion" class="retro-btn">START SCAN</button>
-                </div>
-                <div id="webcam-container" class="webcam-container"></div>
-                <div id="label-container" class="label-container pixel-text"></div>
-            </section>
+            <aside class="emotion-sidebar">
+                <section class="emotion-detection-panel pixel-border">
+                    <h2 class="pixel-text">EMOTION SCANNER</h2>
+                    <div class="emotion-controls">
+                        <button type="button" id="start-emotion" class="retro-btn">SCAN ON</button>
+                        <button type="button" id="stop-emotion" class="retro-btn" style="display:none;">SCAN OFF</button>
+                        <button type="button" id="capture-emotion" class="retro-btn" style="display:none;">CAPTURE</button>
+                    </div>
+                    <div id="webcam-container" class="webcam-container"></div>
+                    <div id="captured-emotion-display" class="captured-emotion-display" style="display:none;">
+                        <canvas id="emotion-capture-canvas" width="200" height="200" class="pixel-border"></canvas>
+                        <p id="captured-emotion-result" class="pixel-text" style="color:var(--retro-yellow); margin-top:10px;"></p>
+                    </div>
+                    <div id="label-container" class="label-container pixel-text"></div>
+                </section>
+            </aside>
         </div>
 
         <!-- 정보 섹션 -->

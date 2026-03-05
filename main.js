@@ -17,9 +17,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Emotion Detection Elements
     const startEmotionBtn = document.getElementById('start-emotion');
+    const stopEmotionBtn = document.getElementById('stop-emotion');
+    const captureEmotionBtn = document.getElementById('capture-emotion');
     const emotionWebcamContainer = document.getElementById('webcam-container');
     const emotionLabelContainer = document.getElementById('label-container');
     const capturedEmotionText = document.getElementById('captured-emotion-text');
+    const capturedEmotionDisplay = document.getElementById('captured-emotion-display');
+    const emotionCaptureCanvas = document.getElementById('emotion-capture-canvas');
+    const capturedEmotionResult = document.getElementById('captured-emotion-result');
 
     // --- State Variables ---
     let segmenter;
@@ -115,6 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Emotion Detection Logic (Teachable Machine) ---
     const EMOTION_URL = "https://teachablemachine.withgoogle.com/models/oDqoAdBWt/"; 
     let emotionModel, emotionWebcam, maxPredictions;
+    let isEmotionScanning = false;
+    let emotionAnimationFrame;
 
     async function initEmotion() {
         const modelURL = EMOTION_URL + "model.json";
@@ -122,35 +129,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             startEmotionBtn.disabled = true;
-            startEmotionBtn.textContent = "Loading Model...";
+            startEmotionBtn.textContent = "LOADING...";
             
-            emotionModel = await tmImage.load(modelURL, metadataURL);
+            if (!emotionModel) {
+                emotionModel = await tmImage.load(modelURL, metadataURL);
+            }
             maxPredictions = emotionModel.getTotalClasses();
 
             const flip = true; 
             emotionWebcam = new tmImage.Webcam(200, 200, flip); 
             await emotionWebcam.setup(); 
             await emotionWebcam.play();
-            window.requestAnimationFrame(emotionLoop);
+            
+            isEmotionScanning = true;
+            emotionAnimationFrame = window.requestAnimationFrame(emotionLoop);
 
+            emotionWebcamContainer.innerHTML = "";
             emotionWebcamContainer.appendChild(emotionWebcam.canvas);
+            emotionWebcamContainer.style.display = 'flex';
+            
             emotionLabelContainer.innerHTML = "";
             for (let i = 0; i < maxPredictions; i++) {
                 emotionLabelContainer.appendChild(document.createElement("div"));
             }
-            startEmotionBtn.textContent = "SCANNING...";
+
+            // Update UI
+            startEmotionBtn.style.display = 'none';
+            stopEmotionBtn.style.display = 'inline-block';
+            captureEmotionBtn.style.display = 'inline-block';
+            capturedEmotionDisplay.style.display = 'none';
+            
         } catch (error) {
             console.error("Error loading emotion model:", error);
             alert("감정 분석 모델을 로드하는 데 실패했습니다.");
             startEmotionBtn.disabled = false;
-            startEmotionBtn.textContent = "START SCAN";
+            startEmotionBtn.textContent = "SCAN ON";
         }
     }
 
+    function stopEmotion() {
+        isEmotionScanning = false;
+        if (emotionAnimationFrame) {
+            window.cancelAnimationFrame(emotionAnimationFrame);
+        }
+        if (emotionWebcam) {
+            emotionWebcam.stop();
+        }
+        emotionWebcamContainer.innerHTML = "";
+        emotionWebcamContainer.style.display = 'none';
+        emotionLabelContainer.innerHTML = "";
+        
+        // Update UI
+        startEmotionBtn.style.display = 'inline-block';
+        startEmotionBtn.disabled = false;
+        startEmotionBtn.textContent = "SCAN ON";
+        stopEmotionBtn.style.display = 'none';
+        captureEmotionBtn.style.display = 'none';
+    }
+
     async function emotionLoop() {
+        if (!isEmotionScanning) return;
         emotionWebcam.update(); 
         await predictEmotion();
-        window.requestAnimationFrame(emotionLoop);
+        emotionAnimationFrame = window.requestAnimationFrame(emotionLoop);
     }
 
     async function predictEmotion() {
@@ -160,6 +201,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(0) + "%";
             emotionLabelContainer.childNodes[i].innerHTML = classPrediction;
         }
+    }
+
+    async function captureEmotion() {
+        if (!emotionWebcam) return;
+        
+        // Draw current frame to capture canvas
+        const ctx = emotionCaptureCanvas.getContext('2d');
+        ctx.drawImage(emotionWebcam.canvas, 0, 0, 200, 200);
+        
+        capturedEmotionDisplay.style.display = 'block';
+        capturedEmotionResult.textContent = "ANALYZING...";
+        
+        // Predict from the captured frame
+        const prediction = await emotionModel.predict(emotionCaptureCanvas);
+        let topPrediction = { className: "", probability: 0 };
+        prediction.forEach(p => {
+            if (p.probability > topPrediction.probability) {
+                topPrediction = p;
+            }
+        });
+        
+        capturedEmotionResult.textContent = `RESULT: ${topPrediction.className}`;
     }
 
     async function predictCapturedFace(imageDataUrl) {
@@ -193,6 +256,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     startEmotionBtn.addEventListener('click', initEmotion);
+    stopEmotionBtn.addEventListener('click', stopEmotion);
+    captureEmotionBtn.addEventListener('click', captureEmotion);
 
     // --- Event Handlers ---
 
