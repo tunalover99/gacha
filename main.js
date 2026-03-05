@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const startEmotionBtn = document.getElementById('start-emotion');
     const emotionWebcamContainer = document.getElementById('webcam-container');
     const emotionLabelContainer = document.getElementById('label-container');
+    const capturedEmotionText = document.getElementById('captured-emotion-text');
 
     // --- State Variables ---
     let segmenter;
@@ -106,12 +107,13 @@ document.addEventListener('DOMContentLoaded', () => {
         capturedFaceImg.src = capturedFaceDataUrl;
         capturedFaceImg.style.display = 'block';
         facePreview.style.display = 'none';
+        
+        predictCapturedFace(imageDataUrl); // Analyze emotion of the captured face
         createSpheres(); // Refresh gacha capsules
     }
 
     // --- Emotion Detection Logic (Teachable Machine) ---
-    // Using a sample public model if user's local model is missing.
-    const EMOTION_URL = "https://teachablemachine.withgoogle.com/models/v6Hw-R9R-/"; 
+    const EMOTION_URL = "https://teachablemachine.withgoogle.com/models/oDqoAdBWt/"; 
     let emotionModel, emotionWebcam, maxPredictions;
 
     async function initEmotion() {
@@ -139,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
             startEmotionBtn.textContent = "SCANNING...";
         } catch (error) {
             console.error("Error loading emotion model:", error);
-            alert("감정 분석 모델을 로드하는 데 실패했습니다. (URL: " + EMOTION_URL + ")");
+            alert("감정 분석 모델을 로드하는 데 실패했습니다.");
             startEmotionBtn.disabled = false;
             startEmotionBtn.textContent = "START SCAN";
         }
@@ -158,6 +160,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(0) + "%";
             emotionLabelContainer.childNodes[i].innerHTML = classPrediction;
         }
+    }
+
+    async function predictCapturedFace(imageDataUrl) {
+        if (!emotionModel) {
+            const modelURL = EMOTION_URL + "model.json";
+            const metadataURL = EMOTION_URL + "metadata.json";
+            try {
+                emotionModel = await tmImage.load(modelURL, metadataURL);
+            } catch (e) {
+                console.error("Silent model load failed", e);
+                return;
+            }
+        }
+
+        const tempImg = new Image();
+        tempImg.onload = async () => {
+            const prediction = await emotionModel.predict(tempImg);
+            let topPrediction = { className: "", probability: 0 };
+            prediction.forEach(p => {
+                if (p.probability > topPrediction.probability) {
+                    topPrediction = p;
+                }
+            });
+            
+            if (capturedEmotionText) {
+                capturedEmotionText.textContent = `감정 분석 결과: ${topPrediction.className}`;
+                capturedEmotionText.style.display = 'block';
+            }
+        };
+        tempImg.src = imageDataUrl;
     }
 
     startEmotionBtn.addEventListener('click', initEmotion);
