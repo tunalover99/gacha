@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const startEmotionBtn = document.getElementById('start-emotion');
     const stopEmotionBtn = document.getElementById('stop-emotion');
     const captureEmotionBtn = document.getElementById('capture-emotion');
+    const rescanEmotionBtn = document.getElementById('rescan-emotion');
     const emotionWebcamContainer = document.getElementById('webcam-container');
     const emotionLabelContainer = document.getElementById('label-container');
     const capturedEmotionText = document.getElementById('captured-emotion-text');
@@ -158,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             stopEmotionBtn.style.display = 'inline-block';
             captureEmotionBtn.style.display = 'inline-block';
             capturedEmotionDisplay.style.display = 'none';
+            emotionLabelContainer.style.display = 'flex';
             
         } catch (error) {
             console.error("Error loading emotion model:", error);
@@ -178,6 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
         emotionWebcamContainer.innerHTML = "";
         emotionWebcamContainer.style.display = 'none';
         emotionLabelContainer.innerHTML = "";
+        capturedEmotionDisplay.style.display = 'none';
         
         // Update UI
         startEmotionBtn.style.display = 'inline-block';
@@ -210,6 +213,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = emotionCaptureCanvas.getContext('2d');
         ctx.drawImage(emotionWebcam.canvas, 0, 0, 200, 200);
         
+        // Hide real-time elements
+        emotionWebcamContainer.style.display = 'none';
+        emotionLabelContainer.style.display = 'none';
+        captureEmotionBtn.style.display = 'none';
+        
         capturedEmotionDisplay.style.display = 'block';
         capturedEmotionResult.textContent = "ANALYZING...";
         
@@ -223,6 +231,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         capturedEmotionResult.textContent = `RESULT: ${topPrediction.className}`;
+    }
+
+    function rescanEmotion() {
+        // Show real-time elements
+        emotionWebcamContainer.style.display = 'flex';
+        emotionLabelContainer.style.display = 'flex';
+        captureEmotionBtn.style.display = 'inline-block';
+        
+        // Hide capture display
+        capturedEmotionDisplay.style.display = 'none';
     }
 
     async function predictCapturedFace(imageDataUrl) {
@@ -258,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startEmotionBtn.addEventListener('click', initEmotion);
     stopEmotionBtn.addEventListener('click', stopEmotion);
     captureEmotionBtn.addEventListener('click', captureEmotion);
+    rescanEmotionBtn.addEventListener('click', rescanEmotion);
 
     // --- Event Handlers ---
 
