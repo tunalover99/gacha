@@ -1,3 +1,58 @@
+@font-face {
+    font-family: 'Pretendard';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Thin.woff2') format('woff2');
+    font-weight: 100;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Pretendard';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraLight.woff2') format('woff2');
+    font-weight: 200;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Pretendard';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Light.woff2') format('woff2');
+    font-weight: 300;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Pretendard';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Pretendard';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Pretendard';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Pretendard';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Pretendard';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraBold.woff2') format('woff2');
+    font-weight: 800;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Pretendard';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Black.woff2') format('woff2');
+    font-weight: 900;
+    font-display: swap;
+}
+
 :root {
   --primary-blue: #0051ba;
   --retro-red: #e60012;
@@ -15,7 +70,7 @@
 }
 
 body {
-  font-family: 'Press Start 2P', cursive;
+  font-family: 'Press Start 2P', 'Pretendard', cursive;
   background-color: var(--primary-blue);
   background-image: radial-gradient(circle, #2196f3 1px, transparent 1px);
   background-size: 20px 20px;
@@ -66,7 +121,7 @@ body {
 
 /* Retro Buttons */
 .retro-btn {
-  font-family: 'Press Start 2P', cursive;
+  font-family: 'Press Start 2P', 'Pretendard', cursive;
   padding: 10px 15px;
   background: var(--retro-yellow);
   color: var(--pixel-black);
@@ -212,7 +267,7 @@ body {
 
 /* Spin Button */
 .spin-btn {
-  font-family: 'Press Start 2P', cursive;
+  font-family: 'Press Start 2P', 'Pretendard', cursive;
   padding: 20px 40px;
   font-size: 16px;
   background: var(--retro-yellow);
@@ -235,7 +290,7 @@ body {
 
 .contact-section h3 { margin-bottom: 20px; }
 .pixel-input {
-  font-family: 'Press Start 2P', cursive;
+  font-family: 'Press Start 2P', 'Pretendard', cursive;
   width: 100%;
   padding: 10px;
   background: var(--pixel-white);
