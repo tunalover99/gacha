@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "포기하지 않는 너의 모습이 가장 아름다워.", "기적은 네가 믿는 순간 시작될 거야.", "너는 사랑받기 위해 태어난 소중한 존재야."
     ];
 
+    // --- Music ---
     musicToggleBtn.addEventListener('click', () => {
         if (isMusicPlaying) {
             bgm.pause();
@@ -54,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isMusicPlaying = !isMusicPlaying;
     });
 
+    // --- AI Model ---
     async function loadModel() {
         try {
             const model = bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation;
@@ -63,16 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
             enableCameraBtn.disabled = false;
             triggerUploadBtn.disabled = false;
         } catch (error) {
-            console.error("Error loading AI model:", error);
             loadingStatus.textContent = "AI 모델 로딩 실패!";
         }
     }
 
     async function processImageSource(sourceElement) {
-        if (!segmenter) {
-            alert("AI 모델이 아직 로딩 중입니다. 잠시 후 다시 시도해주세요.");
-            return null;
-        }
+        if (!segmenter) { alert("AI 모델이 아직 로딩 중입니다."); return null; }
         const tempCanvas = document.createElement('canvas');
         const ctx = tempCanvas.getContext('2d');
         const scale = 0.5;
@@ -86,15 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
             const data = imageData.data;
             const maskData = personMask.data;
-            for (let i = 0; i < data.length; i += 4) {
-                if (maskData[i + 3] === 0) { data[i + 3] = 0; }
-            }
+            for (let i = 0; i < data.length; i += 4) { if (maskData[i+3] === 0) data[i+3] = 0; }
             ctx.putImageData(imageData, 0, 0);
             return tempCanvas.toDataURL('image/png');
         } catch (error) {
-            console.error("Error during image processing:", error);
-            alert("이미지 처리 중 오류가 발생했습니다.");
-            return null;
+            alert("이미지 처리 중 오류가 발생했습니다."); return null;
         }
     }
 
@@ -108,10 +102,88 @@ document.addEventListener('DOMContentLoaded', () => {
         createSpheres();
     }
 
+    // --- Emotion Detection (레이더 차트 스타일) ---
     const EMOTION_URL = "https://teachablemachine.withgoogle.com/models/oDqoAdBWt/";
     let emotionModel, emotionWebcam, maxPredictions;
     let isEmotionScanning = false;
     let emotionAnimationFrame;
+    let lastPredictions = [];
+
+    // 레이더 캔버스 세팅
+    const radarCanvas = document.getElementById('radar-canvas');
+    const radarCtx = radarCanvas ? radarCanvas.getContext('2d') : null;
+
+    function drawRadar(predictions, webcamCanvas) {
+        if (!radarCtx || !predictions.length) return;
+        const size = radarCanvas.width;
+        const cx = size / 2;
+        const cy = size / 2;
+        const maxR = size * 0.35;
+        const labelR = size * 0.47;
+        const n = predictions.length;
+
+        radarCtx.clearRect(0, 0, size, size);
+
+        // 웹캠 원형 클리핑
+        if (webcamCanvas) {
+            radarCtx.save();
+            radarCtx.beginPath();
+            radarCtx.arc(cx, cy, maxR, 0, Math.PI * 2);
+            radarCtx.clip();
+            radarCtx.drawImage(webcamCanvas, cx - maxR, cy - maxR, maxR * 2, maxR * 2);
+            radarCtx.restore();
+        }
+
+        // 동심원 3개 (점선)
+        [0.33, 0.66, 1.0].forEach(ratio => {
+            radarCtx.beginPath();
+            radarCtx.arc(cx, cy, maxR * ratio, 0, Math.PI * 2);
+            radarCtx.strokeStyle = ratio === 1.0 ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.15)';
+            radarCtx.lineWidth = ratio === 1.0 ? 1.5 : 1;
+            radarCtx.setLineDash(ratio === 1.0 ? [] : [3, 4]);
+            radarCtx.stroke();
+            radarCtx.setLineDash([]);
+        });
+
+        // 축 라인 + 라벨
+        predictions.forEach((p, i) => {
+            const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
+            const x = cx + Math.cos(angle) * maxR;
+            const y = cy + Math.sin(angle) * maxR;
+            const lx = cx + Math.cos(angle) * labelR;
+            const ly = cy + Math.sin(angle) * labelR;
+
+            radarCtx.beginPath();
+            radarCtx.moveTo(cx, cy);
+            radarCtx.lineTo(x, y);
+            radarCtx.strokeStyle = 'rgba(0,0,0,0.2)';
+            radarCtx.lineWidth = 1;
+            radarCtx.stroke();
+
+            radarCtx.font = '11px "Press Start 2P", cursive';
+            radarCtx.fillStyle = '#333333';
+            radarCtx.textAlign = 'center';
+            radarCtx.textBaseline = 'middle';
+            radarCtx.fillText(p.className, lx, ly);
+        });
+
+        // 데이터 별 모양 채우기
+        radarCtx.beginPath();
+        predictions.forEach((p, i) => {
+            const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
+            const r = maxR * p.probability;
+            const x = cx + Math.cos(angle) * r;
+            const y = cy + Math.sin(angle) * r;
+            if (i === 0) radarCtx.moveTo(x, y);
+            else radarCtx.lineTo(x, y);
+        });
+        radarCtx.closePath();
+        radarCtx.fillStyle = 'rgba(0,0,0,0.12)';
+        radarCtx.fill();
+        radarCtx.strokeStyle = 'rgba(0,0,0,0.6)';
+        radarCtx.lineWidth = 1.5;
+        radarCtx.stroke();
+    }
 
     async function initEmotion() {
         const modelURL = EMOTION_URL + "model.json";
@@ -119,30 +191,29 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             startEmotionBtn.disabled = true;
             startEmotionBtn.textContent = "LOADING...";
-            if (!emotionModel) {
-                emotionModel = await tmImage.load(modelURL, metadataURL);
-            }
+            if (!emotionModel) emotionModel = await tmImage.load(modelURL, metadataURL);
             maxPredictions = emotionModel.getTotalClasses();
-            const flip = true;
-            emotionWebcam = new tmImage.Webcam(200, 200, flip);
+
+            emotionWebcam = new tmImage.Webcam(300, 300, true);
             await emotionWebcam.setup();
             await emotionWebcam.play();
             isEmotionScanning = true;
             emotionAnimationFrame = window.requestAnimationFrame(emotionLoop);
+
+            // 웹캠 캔버스는 숨김 (레이더에 직접 그림)
             emotionWebcamContainer.innerHTML = "";
-            emotionWebcamContainer.appendChild(emotionWebcam.canvas);
-            emotionWebcamContainer.style.display = 'flex';
-            emotionLabelContainer.innerHTML = "";
-            for (let i = 0; i < maxPredictions; i++) {
-                emotionLabelContainer.appendChild(document.createElement("div"));
-            }
+            emotionWebcamContainer.style.display = 'none';
+            emotionLabelContainer.style.display = 'none';
+
             startEmotionBtn.style.display = 'none';
             stopEmotionBtn.style.display = 'inline-block';
             captureEmotionBtn.style.display = 'inline-block';
             capturedEmotionDisplay.style.display = 'none';
-            emotionLabelContainer.style.display = 'flex';
+
+            // 레이더 캔버스 보이기
+            if (radarCanvas) radarCanvas.style.display = 'block';
+
         } catch (error) {
-            console.error("Error loading emotion model:", error);
             alert("감정 분석 모델을 로드하는 데 실패했습니다.");
             startEmotionBtn.disabled = false;
             startEmotionBtn.textContent = "SCAN ON";
@@ -151,12 +222,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function stopEmotion() {
         isEmotionScanning = false;
-        if (emotionAnimationFrame) { window.cancelAnimationFrame(emotionAnimationFrame); }
-        if (emotionWebcam) { emotionWebcam.stop(); }
+        if (emotionAnimationFrame) window.cancelAnimationFrame(emotionAnimationFrame);
+        if (emotionWebcam) emotionWebcam.stop();
         emotionWebcamContainer.innerHTML = "";
-        emotionWebcamContainer.style.display = 'none';
-        emotionLabelContainer.innerHTML = "";
         capturedEmotionDisplay.style.display = 'none';
+        if (radarCanvas) radarCanvas.style.display = 'none';
         startEmotionBtn.style.display = 'inline-block';
         startEmotionBtn.disabled = false;
         startEmotionBtn.textContent = "SCAN ON";
@@ -167,54 +237,55 @@ document.addEventListener('DOMContentLoaded', () => {
     async function emotionLoop() {
         if (!isEmotionScanning) return;
         emotionWebcam.update();
-        await predictEmotion();
+        const prediction = await emotionModel.predict(emotionWebcam.canvas);
+        lastPredictions = prediction;
+        drawRadar(prediction, emotionWebcam.canvas);
         emotionAnimationFrame = window.requestAnimationFrame(emotionLoop);
     }
 
-    async function predictEmotion() {
-        const prediction = await emotionModel.predict(emotionWebcam.canvas);
-        for (let i = 0; i < maxPredictions; i++) {
-            const classPrediction = prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(0) + "%";
-            emotionLabelContainer.childNodes[i].innerHTML = classPrediction;
-        }
-    }
-
     async function captureEmotion() {
-        if (!emotionWebcam) return;
+        if (!emotionWebcam || !lastPredictions.length) return;
+
+        // 스캔 멈추고 결과 고정
+        isEmotionScanning = false;
+        if (emotionAnimationFrame) window.cancelAnimationFrame(emotionAnimationFrame);
+
+        // 캡처 순간 레이더를 emotion-capture-canvas에 복사
         const ctx = emotionCaptureCanvas.getContext('2d');
-        ctx.drawImage(emotionWebcam.canvas, 0, 0, 200, 200);
-        emotionWebcamContainer.style.display = 'none';
-        emotionLabelContainer.style.display = 'none';
+        emotionCaptureCanvas.width = radarCanvas.width;
+        emotionCaptureCanvas.height = radarCanvas.height;
+        ctx.drawImage(radarCanvas, 0, 0);
+
+        // 결과 표시
+        let topPrediction = { className: "", probability: 0 };
+        lastPredictions.forEach(p => { if (p.probability > topPrediction.probability) topPrediction = p; });
+        capturedEmotionResult.textContent = `${topPrediction.className}`;
+
         captureEmotionBtn.style.display = 'none';
         capturedEmotionDisplay.style.display = 'block';
-        capturedEmotionResult.textContent = "ANALYZING...";
-        const prediction = await emotionModel.predict(emotionCaptureCanvas);
-        let topPrediction = { className: "", probability: 0 };
-        prediction.forEach(p => { if (p.probability > topPrediction.probability) { topPrediction = p; } });
-        capturedEmotionResult.textContent = `RESULT: ${topPrediction.className}`;
+        if (radarCanvas) radarCanvas.style.display = 'none';
     }
 
     function rescanEmotion() {
-        emotionWebcamContainer.style.display = 'flex';
-        emotionLabelContainer.style.display = 'flex';
-        captureEmotionBtn.style.display = 'inline-block';
         capturedEmotionDisplay.style.display = 'none';
+        if (radarCanvas) radarCanvas.style.display = 'block';
+        isEmotionScanning = true;
+        captureEmotionBtn.style.display = 'inline-block';
+        emotionAnimationFrame = window.requestAnimationFrame(emotionLoop);
     }
 
     async function predictCapturedFace(imageDataUrl) {
         if (!emotionModel) {
-            const modelURL = EMOTION_URL + "model.json";
-            const metadataURL = EMOTION_URL + "metadata.json";
-            try { emotionModel = await tmImage.load(modelURL, metadataURL); }
-            catch (e) { console.error("Silent model load failed", e); return; }
+            try { emotionModel = await tmImage.load(EMOTION_URL + "model.json", EMOTION_URL + "metadata.json"); }
+            catch (e) { return; }
         }
         const tempImg = new Image();
         tempImg.onload = async () => {
             const prediction = await emotionModel.predict(tempImg);
             let topPrediction = { className: "", probability: 0 };
-            prediction.forEach(p => { if (p.probability > topPrediction.probability) { topPrediction = p; } });
+            prediction.forEach(p => { if (p.probability > topPrediction.probability) topPrediction = p; });
             if (capturedEmotionText) {
-                capturedEmotionText.textContent = `감정 분석 결과: ${topPrediction.className}`;
+                capturedEmotionText.textContent = `감정: ${topPrediction.className}`;
                 capturedEmotionText.style.display = 'block';
             }
         };
@@ -226,6 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
     captureEmotionBtn.addEventListener('click', captureEmotion);
     rescanEmotionBtn.addEventListener('click', rescanEmotion);
 
+    // --- Camera / Upload ---
     enableCameraBtn.addEventListener('click', async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -235,7 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
             takePhotoBtn.style.display = 'inline-block';
             takePhotoBtn.disabled = false;
         } catch (err) {
-            console.error("Camera access denied:", err);
             alert('카메라 접근 권한이 필요합니다.');
         }
     });
@@ -258,13 +329,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const img = await new Promise((resolve, reject) => {
                 const image = new Image();
                 image.onload = () => resolve(image);
-                image.onerror = (err) => reject(err);
+                image.onerror = err => reject(err);
                 image.src = URL.createObjectURL(file);
             });
             const imageDataUrl = await processImageSource(img);
             updateFace(imageDataUrl);
         } catch (error) {
-            console.error("Error loading uploaded file:", error);
             alert("이미지 파일을 불러오는 데 실패했습니다.");
         } finally {
             triggerUploadBtn.disabled = false;
@@ -295,12 +365,10 @@ document.addEventListener('DOMContentLoaded', () => {
         renderer.setSize(width, height);
         renderer.setPixelRatio(window.devicePixelRatio);
         globeContainer.appendChild(renderer.domElement);
-
         scene.add(new THREE.AmbientLight(0xffffff, 0.8));
         const light = new THREE.DirectionalLight(0xffffff, 0.6);
         light.position.set(5, 5, 10);
         scene.add(light);
-
         createSpheres();
         animate();
     }
@@ -309,99 +377,66 @@ document.addEventListener('DOMContentLoaded', () => {
         spheres.forEach(s => scene.remove(s.mesh));
         spheres = [];
         const geometry = new THREE.SphereGeometry(0.55, 32, 32);
-
         let faceMaterial = null;
         if (capturedFaceDataUrl) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = 256;
-            canvas.height = 256;
+            canvas.width = 256; canvas.height = 256;
             ctx.fillStyle = '#fecb05';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            const img = await new Promise((resolve) => {
-                const i = new Image();
-                i.onload = () => resolve(i);
-                i.src = capturedFaceDataUrl;
+            ctx.fillRect(0, 0, 256, 256);
+            const img = await new Promise(resolve => {
+                const i = new Image(); i.onload = () => resolve(i); i.src = capturedFaceDataUrl;
             });
-            const size = 200;
-            ctx.drawImage(img, (256 - size) / 2, (256 - size) / 2, size, size);
+            ctx.drawImage(img, 28, 28, 200, 200);
             const texture = new THREE.CanvasTexture(canvas);
             faceMaterial = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.3 });
         }
-
         for (let i = 0; i < sphereCount; i++) {
-            const material = faceMaterial
-                ? faceMaterial.clone()
-                : new THREE.MeshStandardMaterial({
-                    color: new THREE.Color().setHSL(Math.random(), 0.6, 0.7),
-                    roughness: 0.2,
-                    metalness: 0.1
-                  });
+            const material = faceMaterial ? faceMaterial.clone()
+                : new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(Math.random(), 0.6, 0.7), roughness: 0.2, metalness: 0.1 });
             const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(
-                (Math.random() - 0.5) * 4,
-                (Math.random() - 0.5) * 3,
-                (Math.random() - 0.5) * 1.5
-            );
-            const sphere = {
-                mesh,
-                velocity: new THREE.Vector3(),
-                angularVelocity: new THREE.Vector3(
-                    Math.random() - 0.5,
-                    Math.random() - 0.5,
-                    Math.random() - 0.5
-                ).multiplyScalar(0.05),
-                radius: 0.55
-            };
-            spheres.push(sphere);
+            mesh.position.set((Math.random()-0.5)*4, (Math.random()-0.5)*3, (Math.random()-0.5)*1.5);
+            spheres.push({ mesh, velocity: new THREE.Vector3(),
+                angularVelocity: new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).multiplyScalar(0.05),
+                radius: 0.55 });
             scene.add(mesh);
         }
     }
 
     function animate() {
         requestAnimationFrame(animate);
-        const gravity = -0.01;
-        const bounce = -0.6;
-        const damping = 0.99;
-
         spheres.forEach(sphere => {
-            sphere.velocity.y += gravity;
+            sphere.velocity.y += -0.01;
             sphere.mesh.position.add(sphere.velocity);
-            sphere.velocity.multiplyScalar(damping);
+            sphere.velocity.multiplyScalar(0.99);
             sphere.mesh.rotation.x += sphere.angularVelocity.x;
             sphere.mesh.rotation.y += sphere.angularVelocity.y;
-
-            if (sphere.mesh.position.y < -2.5) { sphere.mesh.position.y = -2.5; sphere.velocity.y *= bounce; }
-            if (sphere.mesh.position.y > 2.5)  { sphere.mesh.position.y = 2.5;  sphere.velocity.y *= bounce; }
-            if (Math.abs(sphere.mesh.position.x) > 3.0) { sphere.mesh.position.x = Math.sign(sphere.mesh.position.x) * 3.0; sphere.velocity.x *= bounce; }
-            if (Math.abs(sphere.mesh.position.z) > 1.5) { sphere.mesh.position.z = Math.sign(sphere.mesh.position.z) * 1.5; sphere.velocity.z *= bounce; }
+            if (sphere.mesh.position.y < -2.5) { sphere.mesh.position.y = -2.5; sphere.velocity.y *= -0.6; }
+            if (sphere.mesh.position.y > 2.5)  { sphere.mesh.position.y = 2.5;  sphere.velocity.y *= -0.6; }
+            if (Math.abs(sphere.mesh.position.x) > 3.0) { sphere.mesh.position.x = Math.sign(sphere.mesh.position.x)*3.0; sphere.velocity.x *= -0.6; }
+            if (Math.abs(sphere.mesh.position.z) > 1.5) { sphere.mesh.position.z = Math.sign(sphere.mesh.position.z)*1.5; sphere.velocity.z *= -0.6; }
         });
-
         for (let i = 0; i < spheres.length; i++) {
-            for (let j = i + 1; j < spheres.length; j++) {
-                const s1 = spheres[i];
-                const s2 = spheres[j];
+            for (let j = i+1; j < spheres.length; j++) {
+                const s1 = spheres[i], s2 = spheres[j];
                 const diff = s1.mesh.position.clone().sub(s2.mesh.position);
-                const distance = diff.length();
+                const dist = diff.length();
                 const minDist = s1.radius + s2.radius;
-                if (distance < minDist) {
+                if (dist < minDist) {
                     const normal = diff.normalize();
-                    const overlap = minDist - distance;
-                    s1.mesh.position.add(normal.clone().multiplyScalar(overlap / 2));
-                    s2.mesh.position.sub(normal.clone().multiplyScalar(overlap / 2));
-                    const relativeVelocity = s1.velocity.clone().sub(s2.velocity);
-                    const velocityAlongNormal = relativeVelocity.dot(normal);
-                    if (velocityAlongNormal < 0) {
-                        const restitution = 0.8;
-                        const impulseMagnitude = -(1 + restitution) * velocityAlongNormal;
-                        const impulse = normal.multiplyScalar(impulseMagnitude / 2);
+                    const overlap = minDist - dist;
+                    s1.mesh.position.add(normal.clone().multiplyScalar(overlap/2));
+                    s2.mesh.position.sub(normal.clone().multiplyScalar(overlap/2));
+                    const relV = s1.velocity.clone().sub(s2.velocity);
+                    const vDotN = relV.dot(normal);
+                    if (vDotN < 0) {
+                        const impulse = normal.multiplyScalar(-(1+0.8)*vDotN/2);
                         s1.velocity.add(impulse);
                         s2.velocity.sub(impulse);
                     }
                 }
             }
         }
-
         renderer.render(scene, camera);
     }
 
@@ -410,11 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isSpinning = true;
         handle.classList.add('spin');
         spheres.forEach(sphere => {
-            sphere.velocity.set(
-                (Math.random() - 0.5) * 0.5,
-                Math.random() * 0.9,
-                (Math.random() - 0.5) * 0.5
-            );
+            sphere.velocity.set((Math.random()-0.5)*0.5, Math.random()*0.9, (Math.random()-0.5)*0.5);
         });
         setTimeout(dropCapsule, 800);
         setTimeout(() => { handle.classList.remove('spin'); isSpinning = false; }, 1200);
@@ -426,11 +457,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (capturedFaceDataUrl) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = 100;
-            canvas.height = 100;
+            canvas.width = 100; canvas.height = 100;
             ctx.fillStyle = '#fecb05';
             ctx.fillRect(0, 0, 100, 100);
-            const img = await new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = capturedFaceDataUrl; });
+            const img = await new Promise(r => { const i = new Image(); i.onload = ()=>r(i); i.src = capturedFaceDataUrl; });
             ctx.drawImage(img, 10, 10, 80, 80);
             fallingCap.style.backgroundImage = `url(${canvas.toDataURL()})`;
             fallingCap.style.backgroundSize = 'cover';
@@ -442,11 +472,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showResult(capsuleStyle) {
-        const capsuleTop = document.getElementById('capsule-top');
-        const itemName = document.getElementById('item-name');
-        capsuleTop.style.cssText = capsuleStyle;
+        document.getElementById('capsule-top').style.cssText = capsuleStyle;
         const randomMsg = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
-        itemName.textContent = randomMsg;
+        document.getElementById('item-name').textContent = randomMsg;
         modal.style.display = 'flex';
         document.getElementById('capsule-result-container').classList.add('open');
     }
