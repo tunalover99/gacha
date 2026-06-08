@@ -556,25 +556,25 @@ body {
   position: absolute;
   left: 0;
   top: 0;
-  width: 65px;
+  width: 130px;
 }
 
 .cd-player-panel {
-  padding: 6px;
+  padding: 10px;
   text-align: center;
   background: rgba(255,255,255,0.85);
   border: 2px solid #cccccc;
 }
 
 .cd-player-panel h2 {
-  font-size: 5px !important;
-  margin-bottom: 4px;
+  font-size: 7px !important;
+  margin-bottom: 6px;
 }
 
 .cd-player {
-  width: 40px;
-  height: 40px;
-  margin: 4px auto;
+  width: 80px;
+  height: 80px;
+  margin: 6px auto;
   background: #e8e8e8;
   border: 2px solid #cccccc;
   display: flex;
@@ -583,8 +583,8 @@ body {
 }
 
 .cd-case {
-  width: 32px;
-  height: 32px;
+  width: 64px;
+  height: 64px;
   background: #dddddd;
   border: 1px solid #cccccc;
   display: flex;
@@ -593,8 +593,8 @@ body {
 }
 
 .cd-disc {
-  width: 24px;
-  height: 24px;
+  width: 48px;
+  height: 48px;
   background: radial-gradient(circle, #aaaaaa 20%, #cccccc 21%, #cccccc 40%, #aaaaaa 41%, #aaaaaa 60%, #cccccc 61%);
   border-radius: 50%;
   border: 1px solid #bbbbbb;
@@ -603,19 +603,28 @@ body {
   align-items: center;
 }
 
+.cd-disc.spinning {
+  animation: cd-spin 2s linear infinite;
+}
+
+@keyframes cd-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .cd-hole {
-  width: 5px;
-  height: 5px;
+  width: 10px;
+  height: 10px;
   background: #f0f0f0;
   border-radius: 50%;
   border: 1px solid #bbbbbb;
 }
 
 #music-toggle {
-  font-size: 5px !important;
-  padding: 4px 6px !important;
+  font-size: 7px !important;
+  padding: 6px 8px !important;
   width: 100% !important;
-  margin: 2px 0 0 0 !important;
+  margin: 4px 0 0 0 !important;
 }
 .captured-emotion-display {
   margin: 10px 0;
