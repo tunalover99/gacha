@@ -116,22 +116,28 @@
             </div>
 
             <aside class="emotion-sidebar">
-                <section class="emotion-detection-panel pixel-border">
-                    <h2 class="pixel-text">EMOTION SCANNER</h2>
-                    <div class="emotion-controls">
-                        <button type="button" id="start-emotion" class="retro-btn">SCAN ON</button>
-                        <button type="button" id="stop-emotion" class="retro-btn" style="display:none;">SCAN OFF</button>
-                        <button type="button" id="capture-emotion" class="retro-btn" style="display:none;">CAPTURE</button>
-                    </div>
-                    <div id="webcam-container" class="webcam-container"></div>
-                    <div id="captured-emotion-display" class="captured-emotion-display" style="display:none;">
-                        <canvas id="emotion-capture-canvas" width="200" height="200" class="pixel-border"></canvas>
-                        <p id="captured-emotion-result" class="pixel-text ko-text" style="color:var(--retro-yellow); margin-top:10px; font-size: 20px;"></p>
-                        <button type="button" id="rescan-emotion" class="retro-btn" style="margin-top:10px;">RESCAN</button>
-                    </div>
-                    <div id="label-container" class="label-container pixel-text ko-text"></div>
-                </section>
-            </aside>
+    <section class="emotion-detection-panel pixel-border">
+        <h2 class="pixel-text">EMOTION SCANNER</h2>
+        <div class="emotion-controls">
+            <button type="button" id="start-emotion" class="retro-btn">SCAN ON</button>
+            <button type="button" id="stop-emotion" class="retro-btn" style="display:none;">SCAN OFF</button>
+            <button type="button" id="capture-emotion" class="retro-btn" style="display:none;">CAPTURE</button>
+        </div>
+
+        <!-- 레이더 캔버스 (실시간) -->
+        <canvas id="radar-canvas" width="300" height="300" style="display:none; max-width:100%;"></canvas>
+
+        <!-- 캡처 후 결과 -->
+        <div id="captured-emotion-display" class="captured-emotion-display" style="display:none;">
+            <canvas id="emotion-capture-canvas" width="300" height="300" style="max-width:100%;"></canvas>
+            <p id="captured-emotion-result" class="pixel-text" style="color:#333; margin-top:10px; font-size:14px;"></p>
+            <button type="button" id="rescan-emotion" class="retro-btn" style="margin-top:10px;">RESCAN</button>
+        </div>
+
+        <div id="webcam-container" class="webcam-container" style="display:none;"></div>
+        <div id="label-container" class="label-container" style="display:none;"></div>
+    </section>
+</aside>
         </div>
 
         <section id="about" class="content-section pixel-border">
