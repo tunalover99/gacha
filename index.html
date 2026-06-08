@@ -7,7 +7,6 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-V3YRZX5GQH');
     </script>
     <meta charset="UTF-8">
@@ -15,6 +14,7 @@
     <title>PIXEL GACHA - Retro Face Simulator</title>
     <meta name="description" content="2000년대 닌텐도 스타일의 레트로 가챠 시뮬레이터. 자신의 얼굴을 매핑한 특별한 가챠를 경험해보세요!">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,7 +23,6 @@
         <nav>
             <a href="#machine">PLAY</a>
             <a href="#about">INFO</a>
-            <a href="#contact">CONTACT</a>
         </nav>
     </header>
 
@@ -73,14 +72,9 @@
             <div class="machine-wrapper">
                 <section id="machine" class="machine-section">
                     <div class="gacha-machine">
-                        <!-- 상단 투명 돔 -->
                         <div class="globe-container">
-                            <div class="inner-capsules" id="inner-capsules">
-                                <!-- JS로 캡슐들이 채워집니다 -->
-                            </div>
+                            <div class="inner-capsules" id="inner-capsules"></div>
                         </div>
-                        
-                        <!-- 기계 몸체 -->
                         <div class="machine-body">
                             <div class="logo">GACHA</div>
                             <div class="coin-slot-area">
@@ -99,7 +93,6 @@
                         </div>
                         <div class="machine-base"></div>
                     </div>
-                    
                     <div class="controls">
                         <button id="spin-button" class="spin-btn">SPIN!</button>
                         <p class="instruction pixel-text">PUSH START BUTTON!</p>
@@ -130,39 +123,9 @@
         <!-- 정보 섹션 -->
         <section id="about" class="content-section pixel-border">
             <h2 class="pixel-text">ABOUT PIXEL GACHA</h2>
-            <p>이곳은 2000년대 클래식 닌텐도 게임의 감성을 담은 특별한 가챠 시뮬레이터입니다. </p>
+            <p>이곳은 2000년대 클래식 닌텐도 게임의 감성을 담은 특별한 가챠 시뮬레이터입니다.</p>
             <p><strong>페이스 매핑 기능</strong>: 자신의 얼굴을 캡처하여 가챠 캡슐에 입혀보세요. 마치 '페이스 레이더즈'처럼 당신의 얼굴이 캡슐이 되어 쏟아집니다!</p>
         </section>
-
-        <section id="contact" class="contact-section pixel-border">
-            <h3 class="pixel-text">CONTACT</h3>
-            <form action="https://formspree.io/f/xnjbkoko" method="POST" id="contact-form">
-                <div class="form-group">
-                    <input type="text" name="name" placeholder="NAME" required class="pixel-input">
-                </div>
-                <div class="form-group">
-                    <input type="email" name="_replyto" placeholder="EMAIL" required class="pixel-input">
-                </div>
-                <div class="form-group">
-                    <textarea name="message" placeholder="MESSAGE" required class="pixel-input"></textarea>
-                </div>
-                <button type="submit" class="submit-btn retro-btn">SEND</button>
-                <p id="form-status"></p>
-            </form>
-        </section>
-
-        <div class="comments-section pixel-border">
-            <h3 class="pixel-text">COMMENTS</h3>
-            <div id="disqus_thread"></div>
-            <script>
-                (function() {
-                var d = document, s = d.createElement('script');
-                s.src = 'https://gacha-3.disqus.com/embed.js';
-                s.setAttribute('data-timestamp', +new Date());
-                (d.head || d.body).appendChild(s);
-                })();
-            </script>
-        </div>
 
         <section class="policy-section">
             <p>본 사이트는 레트로 게임 감성을 사랑하는 팬들을 위해 제작되었습니다. 쿠키 및 데이터 수집은 최소화하고 있습니다.</p>
