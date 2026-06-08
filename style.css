@@ -1,63 +1,8 @@
-@font-face {
-    font-family: 'Pretendard';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Thin.woff2') format('woff2');
-    font-weight: 100;
-    font-display: swap;
-}
-@font-face {
-    font-family: 'Pretendard';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraLight.woff2') format('woff2');
-    font-weight: 200;
-    font-display: swap;
-}
-@font-face {
-    font-family: 'Pretendard';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Light.woff2') format('woff2');
-    font-weight: 300;
-    font-display: swap;
-}
-@font-face {
-    font-family: 'Pretendard';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Regular.woff2') format('woff2');
-    font-weight: 400;
-    font-display: swap;
-}
-@font-face {
-    font-family: 'Pretendard';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Medium.woff2') format('woff2');
-    font-weight: 500;
-    font-display: swap;
-}
-@font-face {
-    font-family: 'Pretendard';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2') format('woff2');
-    font-weight: 600;
-    font-display: swap;
-}
-@font-face {
-    font-family: 'Pretendard';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Bold.woff2') format('woff2');
-    font-weight: 700;
-    font-display: swap;
-}
-@font-face {
-    font-family: 'Pretendard';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraBold.woff2') format('woff2');
-    font-weight: 800;
-    font-display: swap;
-}
-@font-face {
-    font-family: 'Pretendard';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Black.woff2') format('woff2');
-    font-weight: 900;
-    font-display: swap;
-}
-
 :root {
-  --primary-blue: #0051ba;
-  --retro-red: #e60012;
+  --primary-blue: #f0f0f0;
+  --retro-red: #ffffff;
   --retro-yellow: #fecb05;
-  --pixel-white: #ffffff;
+  --pixel-white: #111111;
   --pixel-black: #000000;
   --machine-width: 300px;
 }
@@ -70,13 +15,17 @@
 }
 
 body {
-  font-family: 'Press Start 2P', 'Pretendard', cursive;
-  background-color: var(--primary-blue);
-  background-image: radial-gradient(circle, #2196f3 1px, transparent 1px);
+  font-family: 'Press Start 2P', 'Galmuri11', cursive;
+  background-color: #e8e8e8;
+  background-image: radial-gradient(circle, #d0d0d0 1px, transparent 1px);
   background-size: 20px 20px;
-  color: var(--pixel-white);
+  color: #111111;
   line-height: 1.6;
   font-size: 10px;
+}
+
+.ko-text {
+  font-family: 'Galmuri11', 'Press Start 2P', cursive;
 }
 
 .container {
@@ -87,15 +36,13 @@ body {
 }
 
 .pixel-text {
-  text-shadow: 2px 2px var(--pixel-black);
+  text-shadow: 2px 2px rgba(0,0,0,0.15);
 }
-.ko-text {
-  font-family: 'Galmuri11', 'Press Start 2P', cursive;
-}
+
 .pixel-border {
-  border: 4px solid var(--pixel-black);
-  box-shadow: 4px 4px 0px rgba(0,0,0,0.3);
-  background: rgba(255, 255, 255, 0.1);
+  border: 4px solid #cccccc;
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.1);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(5px);
   padding: 20px;
   margin-bottom: 40px;
@@ -103,32 +50,34 @@ body {
 
 /* Header */
 .main-header {
-  background: var(--retro-red);
+  background: #ffffff;
   padding: 20px 0;
-  border-bottom: 4px solid var(--pixel-black);
+  border-bottom: 4px solid #dddddd;
   text-align: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
 }
 
 .main-header h1 {
   font-size: 18px;
   margin-bottom: 15px;
+  color: #111111;
 }
 
 .main-header nav a {
   margin: 0 10px;
   text-decoration: none;
-  color: var(--pixel-white);
+  color: #333333;
   font-size: 12px;
 }
 
 /* Retro Buttons */
 .retro-btn {
-  font-family: 'Press Start 2P', 'Pretendard', cursive;
+  font-family: 'Press Start 2P', cursive;
   padding: 10px 15px;
-  background: var(--retro-yellow);
-  color: var(--pixel-black);
-  border: 3px solid var(--pixel-black);
-  box-shadow: 4px 4px 0 var(--pixel-black);
+  background: #ffffff;
+  color: #111111;
+  border: 3px solid #aaaaaa;
+  box-shadow: 4px 4px 0 #aaaaaa;
   cursor: pointer;
   font-size: 10px;
   transition: transform 0.1s;
@@ -137,7 +86,7 @@ body {
 
 .retro-btn:active {
   transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 var(--pixel-black);
+  box-shadow: 2px 2px 0 #aaaaaa;
 }
 
 /* Face Capture Panel */
@@ -152,8 +101,8 @@ body {
 .face-preview {
   width: 80px;
   height: 80px;
-  border: 4px solid var(--pixel-black);
-  background: #444;
+  border: 4px solid #cccccc;
+  background: #e0e0e0;
   margin: 0 auto 10px;
   border-radius: 50%;
   overflow: hidden;
@@ -161,7 +110,7 @@ body {
   background-position: center;
 }
 
-.pixel-hint { font-size: 16px; margin-top: 15px; }
+.pixel-hint { font-size: 16px; margin-top: 15px; color: #555555; }
 
 /* Machine Section */
 .machine-section { margin-bottom: 60px; }
@@ -170,13 +119,21 @@ body {
   width: var(--machine-width);
   margin: 0 auto 30px;
   position: relative;
+  filter: drop-shadow(0 10px 30px rgba(0,0,0,0.15));
 }
 
+/* 투명 플라스틱 돔 */
 .globe-container {
   width: var(--machine-width);
   height: 250px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 4px solid var(--pixel-black);
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255,0.6) 0%,
+    rgba(220,240,255,0.3) 40%,
+    rgba(255,255,255,0.15) 60%,
+    rgba(200,230,255,0.4) 100%
+  );
+  border: 3px solid rgba(255,255,255,0.9);
   border-radius: 50% 50% 10px 10px;
   position: relative;
   overflow: hidden;
@@ -184,6 +141,38 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  box-shadow:
+    inset -8px -8px 20px rgba(0,0,0,0.05),
+    inset 8px 8px 20px rgba(255,255,255,0.8),
+    0 0 0 2px rgba(200,220,240,0.5);
+}
+
+/* 돔 반사광 */
+.globe-container::before {
+  content: '';
+  position: absolute;
+  top: 8%;
+  left: 12%;
+  width: 35%;
+  height: 30%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.1));
+  border-radius: 50%;
+  transform: rotate(-20deg);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.globe-container::after {
+  content: '';
+  position: absolute;
+  bottom: 15%;
+  right: 10%;
+  width: 15%;
+  height: 20%;
+  background: rgba(255,255,255,0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 10;
 }
 
 .globe-container canvas {
@@ -192,40 +181,93 @@ body {
   image-rendering: pixelated;
 }
 
+/* 기계 몸체 */
 .machine-body {
   width: var(--machine-width);
   height: 240px;
-  background: var(--retro-red);
-  border: 4px solid var(--pixel-black);
+  background: linear-gradient(180deg, #f8f8f8 0%, #eeeeee 50%, #e4e4e4 100%);
+  border: 2px solid #cccccc;
   border-radius: 10px 10px 30px 30px;
   position: relative;
   padding: 20px;
   margin-top: -10px;
-  box-shadow: inset -8px -8px 0 rgba(0,0,0,0.2);
+  box-shadow:
+    inset -4px -4px 0 rgba(0,0,0,0.05),
+    inset 4px 4px 0 rgba(255,255,255,0.8);
 }
 
-.logo { color: white; font-size: 20px; margin-bottom: 20px; text-shadow: 2px 2px var(--pixel-black); }
+.logo {
+  color: #555555;
+  font-size: 20px;
+  margin-bottom: 20px;
+  text-shadow: 1px 1px rgba(0,0,0,0.1);
+  letter-spacing: 3px;
+}
 
 .handle-area {
-  width: 100px; height: 100px;
-  background: #ccc;
-  border: 4px solid var(--pixel-black);
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #e8e8e8, #d0d0d0);
+  border: 3px solid #bbbbbb;
   border-radius: 50%;
   margin: 0 auto;
   position: relative;
+  box-shadow: inset 2px 2px 5px rgba(255,255,255,0.8), inset -2px -2px 5px rgba(0,0,0,0.1);
 }
 
-.handle { width: 80px; height: 80px; position: relative; cursor: pointer; }
+.handle {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  cursor: pointer;
+}
+
 .handle.spin { animation: spin-anim 1s linear; }
 @keyframes spin-anim { 100% { transform: rotate(360deg); } }
 
-.handle-bar { width: 100%; height: 10px; background: #888; border: 2px solid var(--pixel-black); position: absolute; top: 50%; transform: translateY(-50%); }
-.handle-center { width: 20px; height: 20px; background: #666; border: 2px solid var(--pixel-black); border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.handle-bar {
+  width: 100%;
+  height: 10px;
+  background: linear-gradient(180deg, #dddddd, #bbbbbb);
+  border: 2px solid #aaaaaa;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.handle-center {
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #e0e0e0, #c0c0c0);
+  border: 2px solid #aaaaaa;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: inset 1px 1px 3px rgba(255,255,255,0.8);
+}
 
 .exit-slot {
-  width: 80px; height: 50px; background: var(--pixel-black);
-  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-  border-radius: 5px;
+  width: 80px;
+  height: 50px;
+  background: linear-gradient(180deg, #cccccc, #bbbbbb);
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 8px;
+  border: 2px solid #aaaaaa;
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);
+}
+
+.machine-base {
+  width: 100%;
+  height: 15px;
+  background: linear-gradient(180deg, #dddddd, #cccccc);
+  border-radius: 0 0 20px 20px;
+  border: 2px solid #bbbbbb;
+  border-top: none;
 }
 
 /* Capsule */
@@ -234,13 +276,15 @@ body {
   height: 40px;
   border-radius: 50%;
   position: absolute;
-  border: 2px solid var(--pixel-black);
+  border: 2px solid rgba(255,255,255,0.6);
   background-size: cover;
   background-position: center;
-  background-color: #fff;
+  background-color: rgba(255,255,255,0.7);
+  box-shadow:
+    inset -3px -3px 6px rgba(0,0,0,0.1),
+    inset 3px 3px 6px rgba(255,255,255,0.8);
 }
 
-/* 캡슐 반사광 효과 */
 .capsule::before {
   content: '';
   position: absolute;
@@ -248,7 +292,7 @@ body {
   left: 10%;
   width: 15px;
   height: 10px;
-  background: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.6);
   border-radius: 50%;
   transform: rotate(-30deg);
 }
@@ -269,43 +313,43 @@ body {
 
 /* Spin Button */
 .spin-btn {
-  font-family: 'Press Start 2P', 'Pretendard', cursive;
+  font-family: 'Press Start 2P', cursive;
   padding: 20px 40px;
   font-size: 16px;
-  background: var(--retro-yellow);
-  color: var(--pixel-black);
-  border: 4px solid var(--pixel-black);
-  box-shadow: 6px 6px 0 var(--pixel-black);
+  background: #ffffff;
+  color: #111111;
+  border: 4px solid #bbbbbb;
+  box-shadow: 6px 6px 0 #bbbbbb;
   cursor: pointer;
 }
 
 .spin-btn:active {
   transform: translate(3px, 3px);
-  box-shadow: 3px 3px 0 var(--pixel-black);
+  box-shadow: 3px 3px 0 #bbbbbb;
 }
 
-.instruction { margin-top: 20px; font-size: 8px; }
+.instruction { margin-top: 20px; font-size: 8px; color: #666666; }
 
 /* Content Sections */
 .content-section { text-align: left; }
-.content-section p { font-size: 16px; margin-bottom: 15px; line-height: 2; }
+.content-section p { font-size: 16px; margin-bottom: 15px; line-height: 2; color: #333333; }
 
-.contact-section h3 { margin-bottom: 20px; }
 .pixel-input {
-  font-family: 'Press Start 2P', 'Pretendard', cursive;
+  font-family: 'Press Start 2P', cursive;
   width: 100%;
   padding: 10px;
-  background: var(--pixel-white);
-  border: 3px solid var(--pixel-black);
+  background: #ffffff;
+  border: 3px solid #cccccc;
   margin-bottom: 10px;
   font-size: 8px;
+  color: #111111;
 }
 
 /* Modal */
 .modal {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.5);
   display: none;
   justify-content: center;
   align-items: center;
@@ -313,11 +357,12 @@ body {
 }
 
 .modal-content {
-  background: var(--primary-blue);
+  background: #ffffff;
   padding: 60px;
   text-align: center;
-  max-width: 600px; /* 1.5배 확대 */
-  border: 6px solid var(--pixel-black);
+  max-width: 600px;
+  border: 4px solid #cccccc;
+  box-shadow: 10px 10px 0 rgba(0,0,0,0.1);
 }
 
 .capsule-result-container {
@@ -327,7 +372,7 @@ body {
 
 .capsule-half {
   width: 160px; height: 80px;
-  border: 4px solid var(--pixel-black);
+  border: 3px solid #cccccc;
   position: absolute; left: 20px;
   transition: all 0.5s steps(5);
 }
@@ -335,13 +380,14 @@ body {
 .capsule-half.top {
   top: 20px;
   border-radius: 80px 80px 0 0;
-  background: rgba(255,255,255,0.8);
+  background: rgba(220,240,255,0.6);
+  box-shadow: inset 5px 5px 10px rgba(255,255,255,0.8);
 }
 
 .capsule-half.bottom {
   bottom: 20px;
   border-radius: 0 0 80px 80px;
-  background: var(--retro-yellow);
+  background: rgba(240,240,240,0.8);
 }
 
 .open .capsule-half.top { transform: translateY(-60px) rotate(-10deg); }
@@ -350,7 +396,8 @@ body {
 .result-paper {
   position: absolute;
   top: 60px; left: 10px; width: 180px; height: 90px;
-  background: white; border: 3px solid var(--pixel-black);
+  background: white;
+  border: 3px solid #dddddd;
   z-index: 5; opacity: 0;
   display: flex; align-items: center; justify-content: center;
   padding: 15px;
@@ -358,65 +405,71 @@ body {
 
 .open .result-paper { opacity: 1; transform: scale(1.2); transition: 0.5s steps(5); }
 
-.paper-content h4 { 
-  font-size: 14px; /* 폰트 확대 */
-  color: var(--retro-red); 
-  margin-bottom: 8px; 
+.paper-content h4 {
+  font-size: 14px;
+  color: #333333;
+  margin-bottom: 8px;
   text-shadow: none !important;
 }
 
-.paper-content #item-name { 
-  font-size: 12px; /* 폰트 확대 */
-  color: var(--pixel-black); 
+.paper-content #item-name {
+  font-size: 12px;
+  color: #111111;
   line-height: 1.6;
   word-break: keep-all;
   text-shadow: none !important;
 }
 
 /* Footer */
-.main-footer { padding: 40px 20px; border-top: 4px solid var(--pixel-black); }
+.main-footer {
+  padding: 40px 20px;
+  border-top: 4px solid #dddddd;
+  color: #666666;
+}
 
 /* Emotion Detection Panel */
 .emotion-detection-panel {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(5px);
-    padding: 20px;
-    margin-bottom: 40px;
-    text-align: center;
-    border: 4px solid var(--pixel-black);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(5px);
+  padding: 20px;
+  margin-bottom: 0;
+  text-align: center;
+  border: 3px solid #cccccc;
+  min-width: 200px;
 }
 
 .emotion-controls {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 .webcam-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 15px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
 }
 
 .webcam-container canvas {
-    border: 4px solid var(--pixel-black);
-    image-rendering: pixelated;
-    max-width: 100%;
+  border: 3px solid #cccccc;
+  image-rendering: pixelated;
+  max-width: 100%;
 }
 
 .label-container {
-    font-size: 10px;
-    line-height: 1.6;
-    min-height: 100px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: var(--pixel-white);
+  font-size: 10px;
+  line-height: 1.6;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #333333;
 }
 
 .label-container div {
-    margin-bottom: 5px;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 5px 10px;
-    border: 2px solid var(--pixel-black);
+  margin-bottom: 5px;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 5px 10px;
+  border: 2px solid #dddddd;
+  color: #333333;
 }
 
 .main-play-area {
@@ -446,70 +499,62 @@ body {
   width: 250px;
 }
 
-/* CD Player Styles */
+/* CD Player */
 .cd-player-panel {
-    padding: 15px;
-    text-align: center;
-    background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.85);
 }
 
 .cd-player {
-    width: 120px;
-    height: 120px;
-    margin: 10px auto;
-    background: #333;
-    border: 4px solid var(--pixel-black);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 10px auto;
+  background: #e8e8e8;
+  border: 3px solid #cccccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
 }
 
 .cd-case {
-    width: 100px;
-    height: 100px;
-    background: #222;
-    border: 2px solid var(--pixel-black);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  width: 100px;
+  height: 100px;
+  background: #dddddd;
+  border: 2px solid #cccccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .cd-disc {
-    width: 80px;
-    height: 80px;
-    background: radial-gradient(circle, #888 20%, #bbb 21%, #bbb 40%, #888 41%, #888 60%, #bbb 61%);
-    border-radius: 50%;
-    border: 2px solid var(--pixel-black);
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(circle, #aaaaaa 20%, #cccccc 21%, #cccccc 40%, #aaaaaa 41%, #aaaaaa 60%, #cccccc 61%);
+  border-radius: 50%;
+  border: 2px solid #bbbbbb;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .cd-disc.spinning {
-    animation: cd-spin 2s linear infinite;
+  animation: cd-spin 2s linear infinite;
 }
 
 @keyframes cd-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .cd-hole {
-    width: 15px;
-    height: 15px;
-    background: #333;
-    border-radius: 50%;
-    border: 2px solid var(--pixel-black);
-}
-
-/* ... existing styles ... */
-
-.emotion-detection-panel {
-  margin-bottom: 0;
-  min-width: 200px;
-  padding: 15px;
+  width: 15px;
+  height: 15px;
+  background: #f0f0f0;
+  border-radius: 50%;
+  border: 2px solid #bbbbbb;
 }
 
 .captured-emotion-display {
@@ -520,12 +565,13 @@ body {
 .captured-emotion-display canvas {
   max-width: 100%;
   height: auto;
-  border: 4px solid var(--pixel-black);
+  border: 3px solid #cccccc;
 }
 
 .policy-section p {
   font-size: 14px;
   line-height: 1.8;
+  color: #888888;
 }
 
 /* Responsive */
