@@ -21,10 +21,10 @@
 
     <!-- 뮤직 플레이어 -->
     <div class="music-float">
-        <div class="cd-player-panel pixel-border">
+        <div class="cd-player-panel">
             <h2 class="pixel-text">BGM</h2>
-            <div id="cd-player" class="cd-player">
-                <canvas id="cd-canvas" width="80" height="80"></canvas>
+            <div class="cd-player">
+                <canvas id="cd-canvas" width="104" height="104"></canvas>
             </div>
             <button id="music-toggle" class="retro-btn">PLAY</button>
             <audio id="bgm" loop>
@@ -36,7 +36,7 @@
     <!-- 감정 분석기 -->
     <div class="emotion-float">
         <section class="emotion-detection-panel">
-            <h2 class="pixel-text">EMOTION SCANNER</h2>
+            <h2 class="pixel-text emotion-title">EMOTION SCANNER</h2>
             <div class="emotion-controls">
                 <button type="button" id="start-emotion" class="retro-btn">SCAN ON</button>
                 <button type="button" id="stop-emotion" class="retro-btn" style="display:none;">SCAN OFF</button>
@@ -45,9 +45,10 @@
             <canvas id="radar-canvas" width="250" height="250" style="display:none; max-width:100%;"></canvas>
             <div id="captured-emotion-display" class="captured-emotion-display" style="display:none;">
                 <canvas id="emotion-capture-canvas" width="250" height="250" style="max-width:100%;"></canvas>
-                <p id="captured-emotion-result" class="pixel-text" style="color:#333; margin-top:10px; font-size:10px;"></p>
-                <button type="button" id="rescan-emotion" class="retro-btn" style="margin-top:10px;">RESCAN</button>
+                <p id="captured-emotion-result" class="pixel-text" style="color:#333; margin-top:8px; font-size:10px;"></p>
+                <button type="button" id="rescan-emotion" class="retro-btn" style="margin-top:8px;">RESCAN</button>
             </div>
+            <p id="emotion-recommendation" class="emotion-rec" style="display:none;"></p>
             <div id="webcam-container" style="display:none;"></div>
             <div id="label-container" style="display:none;"></div>
         </section>
@@ -64,28 +65,35 @@
             <div class="mac-title">PIXEL GACHA</div>
         </div>
 
+        <!-- 헤더 -->
+        <div class="window-header">
+            <h1 class="pixel-text">PIXEL GACHA</h1>
+            <nav>
+                <a href="#machine" class="pixel-text">PLAY</a>
+                <a href="#about" class="pixel-text">INFO</a>
+            </nav>
+        </div>
+
         <div class="window-content">
+
+            <!-- 왼쪽: 버튼들 -->
             <section class="face-capture-panel">
                 <h2 class="pixel-text">CAPTURE YOUR FACE</h2>
                 <div class="capture-controls">
-                    <p id="loading-status" class="pixel-text ko-text" style="font-size:8px;">AI 모델 로딩 중...</p>
+                    <p id="loading-status" class="pixel-text ko-text" style="font-size:7px;">AI loading...</p>
                     <button id="enable-camera" class="retro-btn" disabled>ON CAMERA</button>
                     <button id="take-photo" class="retro-btn" style="display:none;" disabled>TAKE PHOTO</button>
                     <input type="file" id="upload-photo" accept="image/*" style="display:none;">
                     <button id="trigger-upload" class="retro-btn" disabled>UPLOAD PHOTO</button>
                 </div>
                 <div class="video-container" style="display:none;">
-                    <video id="video" width="140" height="105" autoplay playsinline></video>
-                    <canvas id="canvas" width="140" height="105" style="display:none;"></canvas>
+                    <video id="video" width="120" height="90" autoplay playsinline></video>
+                    <canvas id="canvas" width="120" height="90" style="display:none;"></canvas>
                 </div>
-                <div id="face-preview-container" class="face-preview-container">
-                    <div id="face-preview" class="face-preview"></div>
-                    <img id="captured-face" style="display:none; width:60px; height:60px; border-radius:50%; border:3px solid #ccc; margin: 0 auto 8px;">
-                    <p id="captured-emotion-text" class="pixel-text ko-text" style="display:none; color:#555; font-size:8px; margin-bottom:8px;"></p>
-                    <p class="pixel-hint ko-text">얼굴을 등록하면 가챠에 나타납니다!</p>
-                </div>
+                <p class="pixel-hint">REGISTER YOUR FACE<br>TO APPEAR IN GACHA!</p>
             </section>
 
+            <!-- 가운데: 가챠 기계 -->
             <div class="main-play-area">
                 <div class="machine-wrapper">
                     <section id="machine" class="machine-section">
@@ -130,15 +138,27 @@
                     </section>
                 </div>
             </div>
+
+            <!-- 오른쪽: 얼굴 미리보기 -->
+            <div class="face-preview-panel">
+                <div id="face-preview-container" class="face-preview-container">
+                    <div id="face-preview" class="face-preview"></div>
+                    <img id="captured-face" style="display:none; width:90px; height:90px; border-radius:50%; border:3px solid #ccc; margin: 0 auto 8px; display:block;">
+                    <p id="captured-emotion-text" class="pixel-text" style="display:none; color:#555; font-size:7px; margin-top:6px; text-align:center;"></p>
+                </div>
+            </div>
+
         </div>
     </div>
 
+    <!-- 푸터 -->
     <footer class="main-footer">
-        <p class="pixel-text">&copy; 2026 PIXEL GACHA SIMULATOR</p>
+        <p class="pixel-text">&copy; 2026 PIXEL GACHA SIMULATOR &nbsp; made by @suplztm</p>
     </footer>
 
+    <!-- 결과 모달 -->
     <div id="result-modal" class="modal">
-        <div class="modal-content pixel-border">
+        <div class="modal-content">
             <div id="capsule-result-container" class="capsule-result-container">
                 <div id="capsule-top" class="capsule-half top"></div>
                 <div id="capsule-bottom" class="capsule-half bottom"></div>
@@ -146,7 +166,7 @@
                     <div class="paper-content">
                         <h4 class="pixel-text">YOU GOT</h4>
                         <div class="divider"></div>
-                        <p id="item-name" class="pixel-text ko-text">NEW FACE!</p>
+                        <p id="item-name" class="pixel-text">NEW FACE!</p>
                     </div>
                 </div>
             </div>
