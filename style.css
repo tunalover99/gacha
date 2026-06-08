@@ -556,72 +556,67 @@ body {
   position: absolute;
   left: 0;
   top: 0;
-  width: 250px;
-}
-
-.emotion-sidebar {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 250px;
+  width: 65px;
 }
 
 .cd-player-panel {
-  padding: 15px;
+  padding: 6px;
   text-align: center;
   background: rgba(255,255,255,0.85);
+  border: 2px solid #cccccc;
+}
+
+.cd-player-panel h2 {
+  font-size: 5px !important;
+  margin-bottom: 4px;
 }
 
 .cd-player {
-  width: 120px;
-  height: 120px;
-  margin: 10px auto;
+  width: 40px;
+  height: 40px;
+  margin: 4px auto;
   background: #e8e8e8;
-  border: 3px solid #cccccc;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.cd-case {
-  width: 100px;
-  height: 100px;
-  background: #dddddd;
   border: 2px solid #cccccc;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.cd-disc {
-  width: 80px;
-  height: 80px;
-  background: radial-gradient(circle, #aaaaaa 20%, #cccccc 21%, #cccccc 40%, #aaaaaa 41%, #aaaaaa 60%, #cccccc 61%);
-  border-radius: 50%;
-  border: 2px solid #bbbbbb;
-  position: relative;
+.cd-case {
+  width: 32px;
+  height: 32px;
+  background: #dddddd;
+  border: 1px solid #cccccc;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.cd-disc.spinning {
-  animation: cd-spin 2s linear infinite;
-}
-
-@keyframes cd-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.cd-disc {
+  width: 24px;
+  height: 24px;
+  background: radial-gradient(circle, #aaaaaa 20%, #cccccc 21%, #cccccc 40%, #aaaaaa 41%, #aaaaaa 60%, #cccccc 61%);
+  border-radius: 50%;
+  border: 1px solid #bbbbbb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .cd-hole {
-  width: 15px;
-  height: 15px;
+  width: 5px;
+  height: 5px;
   background: #f0f0f0;
   border-radius: 50%;
-  border: 2px solid #bbbbbb;
+  border: 1px solid #bbbbbb;
 }
 
+#music-toggle {
+  font-size: 5px !important;
+  padding: 4px 6px !important;
+  width: 100% !important;
+  margin: 2px 0 0 0 !important;
+}
 .captured-emotion-display {
   margin: 10px 0;
   text-align: center;
