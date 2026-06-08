@@ -116,108 +116,190 @@ body {
 .machine-section { margin-bottom: 60px; }
 
 .gacha-machine {
-  width: var(--machine-width);
+  width: 320px;
   margin: 0 auto 30px;
   position: relative;
-  filter: drop-shadow(0 10px 30px rgba(0,0,0,0.15));
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.18));
 }
 
-/* 투명 플라스틱 돔 */
-.globe-container {
-  width: var(--machine-width);
-  height: 250px;
+/* 원통형 투명 케이스 */
+.cylinder-container {
+  display: flex;
+  align-items: center;
+  height: 180px;
+  margin-bottom: -4px;
+  position: relative;
+}
+
+.cylinder-body {
+  flex: 1;
+  height: 180px;
   background: linear-gradient(
-    135deg,
-    rgba(255,255,255,0.6) 0%,
-    rgba(220,240,255,0.3) 40%,
-    rgba(255,255,255,0.15) 60%,
-    rgba(200,230,255,0.4) 100%
+    180deg,
+    rgba(255,255,255,0.55) 0%,
+    rgba(210,235,255,0.25) 40%,
+    rgba(255,255,255,0.12) 60%,
+    rgba(200,225,255,0.35) 100%
   );
-  border: 3px solid rgba(255,255,255,0.9);
-  border-radius: 50% 50% 10px 10px;
+  border-top: 3px solid rgba(255,255,255,0.95);
+  border-bottom: 3px solid rgba(200,215,230,0.7);
   position: relative;
   overflow: hidden;
-  z-index: 2;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow:
-    inset -8px -8px 20px rgba(0,0,0,0.05),
-    inset 8px 8px 20px rgba(255,255,255,0.8),
-    0 0 0 2px rgba(200,220,240,0.5);
 }
 
-/* 돔 반사광 */
-.globe-container::before {
-  content: '';
+.cylinder-left-cap {
+  width: 24px;
+  height: 180px;
+  background: linear-gradient(180deg, #e8e8e8, #d0d0d0);
+  border: 2px solid #bbbbbb;
+  border-radius: 40% 0 0 40%;
+  flex-shrink: 0;
+  box-shadow: inset 3px 0 8px rgba(255,255,255,0.6);
+}
+
+.cylinder-right-cap {
+  width: 24px;
+  height: 180px;
+  background: linear-gradient(180deg, #e8e8e8, #d0d0d0);
+  border: 2px solid #bbbbbb;
+  border-radius: 0 40% 40% 0;
+  flex-shrink: 0;
+  box-shadow: inset -3px 0 8px rgba(0,0,0,0.08);
+}
+
+/* 투명 케이스 반사광 */
+.cylinder-shine {
   position: absolute;
-  top: 8%;
-  left: 12%;
-  width: 35%;
-  height: 30%;
-  background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.1));
-  border-radius: 50%;
-  transform: rotate(-20deg);
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 100%);
   pointer-events: none;
   z-index: 10;
-}
-
-.globe-container::after {
-  content: '';
-  position: absolute;
-  bottom: 15%;
-  right: 10%;
-  width: 15%;
-  height: 20%;
-  background: rgba(255,255,255,0.4);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.globe-container canvas {
-  width: 100% !important;
-  height: 100% !important;
-  image-rendering: pixelated;
 }
 
 /* 기계 몸체 */
 .machine-body {
-  width: var(--machine-width);
-  height: 240px;
-  background: linear-gradient(180deg, #f8f8f8 0%, #eeeeee 50%, #e4e4e4 100%);
-  border: 2px solid #cccccc;
-  border-radius: 10px 10px 30px 30px;
+  width: 320px;
+  height: 200px;
+  background: linear-gradient(180deg, #f5f5f5 0%, #ececec 60%, #e0e0e0 100%);
+  border: 2px solid #c8c8c8;
+  border-radius: 12px 12px 24px 24px;
   position: relative;
-  padding: 20px;
-  margin-top: -10px;
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
   box-shadow:
-    inset -4px -4px 0 rgba(0,0,0,0.05),
-    inset 4px 4px 0 rgba(255,255,255,0.8);
+    inset 0 2px 6px rgba(255,255,255,0.9),
+    inset 0 -3px 6px rgba(0,0,0,0.06);
 }
 
-.logo {
-  color: #555555;
-  font-size: 20px;
-  margin-bottom: 20px;
-  text-shadow: 1px 1px rgba(0,0,0,0.1);
-  letter-spacing: 3px;
+.machine-logo {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: #888888;
+  letter-spacing: 4px;
 }
 
-.handle-area {
-  width: 100px;
-  height: 100px;
-  background: linear-gradient(135deg, #e8e8e8, #d0d0d0);
-  border: 3px solid #bbbbbb;
-  border-radius: 50%;
-  margin: 0 auto;
+/* 왼쪽 출구 영역 */
+.machine-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* 반투명 출구 문 */
+.exit-door {
+  width: 80px;
+  height: 90px;
+  background: linear-gradient(135deg, rgba(200,230,255,0.5), rgba(180,215,245,0.3));
+  border: 2px solid #bbccdd;
+  border-radius: 40px 40px 8px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset 2px 2px 6px rgba(255,255,255,0.7),
+    inset -2px -2px 4px rgba(0,0,0,0.05);
+}
+
+.exit-door-inner {
+  width: 60px;
+  height: 70px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(200,225,255,0.2));
+  border-radius: 30px 30px 6px 6px;
+  border: 1px solid rgba(255,255,255,0.6);
+}
+
+.exit-slot {
+  width: 70px;
+  height: 28px;
+  background: linear-gradient(180deg, #c0c0c0, #aaaaaa);
+  border-radius: 6px;
+  border: 2px solid #aaaaaa;
   position: relative;
-  box-shadow: inset 2px 2px 5px rgba(255,255,255,0.8), inset -2px -2px 5px rgba(0,0,0,0.1);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.12);
+}
+
+/* 오른쪽 핸들 영역 */
+.machine-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.coin-slot-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.coin-slot {
+  width: 40px;
+  height: 6px;
+  background: #888888;
+  border-radius: 3px;
+  border: 1px solid #666666;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.price-tag {
+  font-size: 10px;
+  color: #666666;
+  font-family: 'Press Start 2P', cursive;
+}
+
+/* 크롬 원형 핸들 */
+.handle-area {
+  width: 90px;
+  height: 90px;
+  background: radial-gradient(circle at 35% 35%, #f0f0f0, #c8c8c8 50%, #a8a8a8);
+  border: 3px solid #b0b0b0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset 2px 2px 6px rgba(255,255,255,0.8),
+    inset -2px -2px 6px rgba(0,0,0,0.15),
+    0 4px 10px rgba(0,0,0,0.15);
 }
 
 .handle {
-  width: 80px;
-  height: 80px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
   position: relative;
   cursor: pointer;
 }
@@ -228,46 +310,41 @@ body {
 .handle-bar {
   width: 100%;
   height: 10px;
-  background: linear-gradient(180deg, #dddddd, #bbbbbb);
-  border: 2px solid #aaaaaa;
+  background: linear-gradient(180deg, #e0e0e0, #b8b8b8);
+  border: 2px solid #a0a0a0;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
+  border-radius: 3px;
 }
 
 .handle-center {
-  width: 20px;
-  height: 20px;
-  background: linear-gradient(135deg, #e0e0e0, #c0c0c0);
-  border: 2px solid #aaaaaa;
+  width: 24px;
+  height: 24px;
+  background: radial-gradient(circle at 35% 35%, #f5f5f5, #c0c0c0);
+  border: 2px solid #a8a8a8;
   border-radius: 50%;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  box-shadow: inset 1px 1px 3px rgba(255,255,255,0.8);
-}
-
-.exit-slot {
-  width: 80px;
-  height: 50px;
-  background: linear-gradient(180deg, #cccccc, #bbbbbb);
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-radius: 8px;
-  border: 2px solid #aaaaaa;
-  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);
+  box-shadow: inset 1px 1px 3px rgba(255,255,255,0.9);
 }
 
 .machine-base {
-  width: 100%;
-  height: 15px;
-  background: linear-gradient(180deg, #dddddd, #cccccc);
+  width: 320px;
+  height: 16px;
+  background: linear-gradient(180deg, #d8d8d8, #c8c8c8);
   border-radius: 0 0 20px 20px;
-  border: 2px solid #bbbbbb;
+  border: 2px solid #b8b8b8;
   border-top: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Three.js 캔버스를 cylinder body 안에 꽉 채우기 */
+.cylinder-body canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* Capsule */
