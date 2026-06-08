@@ -11,26 +11,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PIXEL GACHA - Retro Face Simulator</title>
-    <meta name="description" content="2000년대 닌텐도 스타일의 레트로 가챠 시뮬레이터.">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- 배경 필름 사진 -->
     <div class="bg-photo"></div>
 
-    <!-- 뮤직 플레이어 (독립 플로팅) -->
+    <!-- 뮤직 플레이어 -->
     <div class="music-float">
         <div class="cd-player-panel pixel-border">
             <h2 class="pixel-text">BGM</h2>
             <div id="cd-player" class="cd-player">
-                <div class="cd-case">
-                    <div id="cd-disc" class="cd-disc">
-                        <div class="cd-hole"></div>
-                    </div>
-                </div>
+                <canvas id="cd-canvas" width="80" height="80"></canvas>
             </div>
             <button id="music-toggle" class="retro-btn">PLAY</button>
             <audio id="bgm" loop>
@@ -39,19 +33,19 @@
         </div>
     </div>
 
-    <!-- 감정 분석기 (독립 플로팅, 우측 하단) -->
+    <!-- 감정 분석기 -->
     <div class="emotion-float">
-        <section class="emotion-detection-panel pixel-border">
+        <section class="emotion-detection-panel">
             <h2 class="pixel-text">EMOTION SCANNER</h2>
             <div class="emotion-controls">
                 <button type="button" id="start-emotion" class="retro-btn">SCAN ON</button>
                 <button type="button" id="stop-emotion" class="retro-btn" style="display:none;">SCAN OFF</button>
                 <button type="button" id="capture-emotion" class="retro-btn" style="display:none;">CAPTURE</button>
             </div>
-            <canvas id="radar-canvas" width="230" height="230" style="display:none; max-width:100%;"></canvas>
+            <canvas id="radar-canvas" width="250" height="250" style="display:none; max-width:100%;"></canvas>
             <div id="captured-emotion-display" class="captured-emotion-display" style="display:none;">
-                <canvas id="emotion-capture-canvas" width="230" height="230" style="max-width:100%;"></canvas>
-                <p id="captured-emotion-result" class="pixel-text" style="color:#333; margin-top:10px; font-size:12px;"></p>
+                <canvas id="emotion-capture-canvas" width="250" height="250" style="max-width:100%;"></canvas>
+                <p id="captured-emotion-result" class="pixel-text" style="color:#333; margin-top:10px; font-size:10px;"></p>
                 <button type="button" id="rescan-emotion" class="retro-btn" style="margin-top:10px;">RESCAN</button>
             </div>
             <div id="webcam-container" style="display:none;"></div>
@@ -59,53 +53,39 @@
         </section>
     </div>
 
-    <!-- 맥북 창 (메인) -->
+    <!-- 맥북 창 -->
     <div class="macbook-window">
-        <!-- 맥북 상단 바 -->
         <div class="mac-titlebar">
             <div class="mac-dots">
                 <span class="mac-dot red"></span>
                 <span class="mac-dot yellow"></span>
                 <span class="mac-dot green"></span>
             </div>
-            <div class="mac-title">3포터 아이콘</div>
+            <div class="mac-title">PIXEL GACHA</div>
         </div>
 
-        <!-- 창 내부 헤더 -->
-        <header class="main-header">
-            <h1>PIXEL GACHA</h1>
-            <nav>
-                <a href="#machine">PLAY</a>
-                <a href="#about">INFO</a>
-            </nav>
-        </header>
-
-        <!-- 창 내부 콘텐츠 -->
         <div class="window-content">
-
-            <!-- Face Capture -->
             <section class="face-capture-panel">
                 <h2 class="pixel-text">CAPTURE YOUR FACE</h2>
                 <div class="capture-controls">
-                    <p id="loading-status" class="pixel-text ko-text">AI 모델 로딩 중...</p>
+                    <p id="loading-status" class="pixel-text ko-text" style="font-size:8px;">AI 모델 로딩 중...</p>
                     <button id="enable-camera" class="retro-btn" disabled>ON CAMERA</button>
                     <button id="take-photo" class="retro-btn" style="display:none;" disabled>TAKE PHOTO</button>
                     <input type="file" id="upload-photo" accept="image/*" style="display:none;">
                     <button id="trigger-upload" class="retro-btn" disabled>UPLOAD PHOTO</button>
                 </div>
                 <div class="video-container" style="display:none;">
-                    <video id="video" width="160" height="120" autoplay playsinline></video>
-                    <canvas id="canvas" width="160" height="120" style="display:none;"></canvas>
+                    <video id="video" width="140" height="105" autoplay playsinline></video>
+                    <canvas id="canvas" width="140" height="105" style="display:none;"></canvas>
                 </div>
                 <div id="face-preview-container" class="face-preview-container">
                     <div id="face-preview" class="face-preview"></div>
-                    <img id="captured-face" style="display:none; width:80px; height:80px; border-radius:50%; border:4px solid #ccc; margin: 0 auto 10px;">
-                    <p id="captured-emotion-text" class="pixel-text ko-text" style="display:none; color:#555; font-size:10px; margin-bottom:10px;"></p>
+                    <img id="captured-face" style="display:none; width:60px; height:60px; border-radius:50%; border:3px solid #ccc; margin: 0 auto 8px;">
+                    <p id="captured-emotion-text" class="pixel-text ko-text" style="display:none; color:#555; font-size:8px; margin-bottom:8px;"></p>
                     <p class="pixel-hint ko-text">얼굴을 등록하면 가챠에 나타납니다!</p>
                 </div>
             </section>
 
-            <!-- 메인 플레이 영역 -->
             <div class="main-play-area">
                 <div class="machine-wrapper">
                     <section id="machine" class="machine-section">
@@ -150,23 +130,13 @@
                     </section>
                 </div>
             </div>
-
-            <!-- About -->
-            <section id="about" class="content-section pixel-border">
-                <h2 class="pixel-text">ABOUT PIXEL GACHA</h2>
-                <p class="ko-text">이곳은 2000년대 클래식 닌텐도 게임의 감성을 담은 특별한 가챠 시뮬레이터입니다.</p>
-                <p class="ko-text"><strong>페이스 매핑 기능</strong>: 자신의 얼굴을 캡처하여 가챠 캡슐에 입혀보세요!</p>
-            </section>
-
         </div>
     </div>
 
-    <!-- 푸터 -->
     <footer class="main-footer">
         <p class="pixel-text">&copy; 2026 PIXEL GACHA SIMULATOR</p>
     </footer>
 
-    <!-- 결과 모달 -->
     <div id="result-modal" class="modal">
         <div class="modal-content pixel-border">
             <div id="capsule-result-container" class="capsule-result-container">
