@@ -89,7 +89,9 @@ body {
 .pixel-text {
   text-shadow: 2px 2px var(--pixel-black);
 }
-
+.ko-text {
+  font-family: 'Galmuri11', 'Press Start 2P', cursive;
+}
 .pixel-border {
   border: 4px solid var(--pixel-black);
   box-shadow: 4px 4px 0px rgba(0,0,0,0.3);
