@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const captureEmotionBtn = document.getElementById('capture-emotion');
     const rescanEmotionBtn = document.getElementById('rescan-emotion');
     const emotionWebcamContainer = document.getElementById('webcam-container');
-    const emotionLabelContainer = document.getElementById('label-container');
     const capturedEmotionText = document.getElementById('captured-emotion-text');
     const capturedEmotionDisplay = document.getElementById('captured-emotion-display');
     const emotionCaptureCanvas = document.getElementById('emotion-capture-canvas');
@@ -33,6 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let capturedFaceDataUrl = null;
     let isSpinning = false;
     let isMusicPlaying = false;
+    let emotionModel, emotionWebcam, maxPredictions;
+    let isEmotionScanning = false;
+    let emotionAnimationFrame;
+    let lastPredictions = [];
 
     const positiveMessages = [
         "너의 미래는 밝게 빛나고 있어!", "오늘의 한 걸음이 위대한 내일이 될 거야.", "너는 이미 충분히 멋진 사람이야.",
@@ -48,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cdDisc.classList.remove('spinning');
             musicToggleBtn.textContent = 'PLAY';
         } else {
-            bgm.play().catch(e => console.error("Audio play failed:", e));
+            bgm.play().catch(e => console.error(e));
             cdDisc.classList.add('spinning');
             musicToggleBtn.textContent = 'STOP';
         }
@@ -59,7 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadModel() {
         try {
             const model = bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation;
-            const segmenterConfig = { runtime: 'mediapipe', solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation', modelType: 'general' };
+            const segmenterConfig = {
+                runtime: 'mediapipe',
+                solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation',
+                modelType: 'general'
+            };
             segmenter = await bodySegmentation.createSegmenter(model, segmenterConfig);
             loadingStatus.style.display = 'none';
             enableCameraBtn.disabled = false;
@@ -102,24 +109,18 @@ document.addEventListener('DOMContentLoaded', () => {
         createSpheres();
     }
 
-    // --- Emotion Detection (레이더 차트 스타일) ---
-    const EMOTION_URL = "https://teachablemachine.withgoogle.com/models/oDqoAdBWt/";
-    let emotionModel, emotionWebcam, maxPredictions;
-    let isEmotionScanning = false;
-    let emotionAnimationFrame;
-    let lastPredictions = [];
-
-    // 레이더 캔버스 세팅
-    const radarCanvas = document.getElementById('radar-canvas');
-    const radarCtx = radarCanvas ? radarCanvas.getContext('2d') : null;
-
+    // --- 레이더 차트 그리기 ---
     function drawRadar(predictions, webcamCanvas) {
+        const radarCanvas = document.getElementById('radar-canvas');
+        if (!radarCanvas) return;
+        const radarCtx = radarCanvas.getContext('2d');
         if (!radarCtx || !predictions.length) return;
+
         const size = radarCanvas.width;
         const cx = size / 2;
         const cy = size / 2;
-        const maxR = size * 0.35;
-        const labelR = size * 0.47;
+        const maxR = size * 0.33;
+        const labelR = size * 0.46;
         const n = predictions.length;
 
         radarCtx.clearRect(0, 0, size, size);
@@ -134,18 +135,18 @@ document.addEventListener('DOMContentLoaded', () => {
             radarCtx.restore();
         }
 
-        // 동심원 3개 (점선)
+        // 동심원
         [0.33, 0.66, 1.0].forEach(ratio => {
             radarCtx.beginPath();
             radarCtx.arc(cx, cy, maxR * ratio, 0, Math.PI * 2);
-            radarCtx.strokeStyle = ratio === 1.0 ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.15)';
+            radarCtx.strokeStyle = ratio === 1.0 ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.2)';
             radarCtx.lineWidth = ratio === 1.0 ? 1.5 : 1;
             radarCtx.setLineDash(ratio === 1.0 ? [] : [3, 4]);
             radarCtx.stroke();
             radarCtx.setLineDash([]);
         });
 
-        // 축 라인 + 라벨
+        // 축 + 라벨
         predictions.forEach((p, i) => {
             const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
             const x = cx + Math.cos(angle) * maxR;
@@ -156,18 +157,18 @@ document.addEventListener('DOMContentLoaded', () => {
             radarCtx.beginPath();
             radarCtx.moveTo(cx, cy);
             radarCtx.lineTo(x, y);
-            radarCtx.strokeStyle = 'rgba(0,0,0,0.2)';
+            radarCtx.strokeStyle = 'rgba(0,0,0,0.25)';
             radarCtx.lineWidth = 1;
             radarCtx.stroke();
 
-            radarCtx.font = '11px "Press Start 2P", cursive';
-            radarCtx.fillStyle = '#333333';
+            radarCtx.font = '9px "Press Start 2P", cursive';
+            radarCtx.fillStyle = '#222222';
             radarCtx.textAlign = 'center';
             radarCtx.textBaseline = 'middle';
             radarCtx.fillText(p.className, lx, ly);
         });
 
-        // 데이터 별 모양 채우기
+        // 데이터 별 모양
         radarCtx.beginPath();
         predictions.forEach((p, i) => {
             const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
@@ -178,42 +179,48 @@ document.addEventListener('DOMContentLoaded', () => {
             else radarCtx.lineTo(x, y);
         });
         radarCtx.closePath();
-        radarCtx.fillStyle = 'rgba(0,0,0,0.12)';
+        radarCtx.fillStyle = 'rgba(0,0,0,0.15)';
         radarCtx.fill();
-        radarCtx.strokeStyle = 'rgba(0,0,0,0.6)';
+        radarCtx.strokeStyle = 'rgba(0,0,0,0.7)';
         radarCtx.lineWidth = 1.5;
         radarCtx.stroke();
     }
 
+    // --- Emotion Detection ---
+    const EMOTION_URL = "https://teachablemachine.withgoogle.com/models/oDqoAdBWt/";
+
     async function initEmotion() {
-        const modelURL = EMOTION_URL + "model.json";
-        const metadataURL = EMOTION_URL + "metadata.json";
         try {
             startEmotionBtn.disabled = true;
             startEmotionBtn.textContent = "LOADING...";
-            if (!emotionModel) emotionModel = await tmImage.load(modelURL, metadataURL);
+
+            if (!emotionModel) {
+                emotionModel = await tmImage.load(EMOTION_URL + "model.json", EMOTION_URL + "metadata.json");
+            }
             maxPredictions = emotionModel.getTotalClasses();
 
             emotionWebcam = new tmImage.Webcam(300, 300, true);
             await emotionWebcam.setup();
             await emotionWebcam.play();
-            isEmotionScanning = true;
-            emotionAnimationFrame = window.requestAnimationFrame(emotionLoop);
 
-            // 웹캠 캔버스는 숨김 (레이더에 직접 그림)
+            isEmotionScanning = true;
+
+            // 웹캠 캔버스 숨김 (레이더에 직접 그림)
             emotionWebcamContainer.innerHTML = "";
             emotionWebcamContainer.style.display = 'none';
-            emotionLabelContainer.style.display = 'none';
 
+            const radarCanvas = document.getElementById('radar-canvas');
+            if (radarCanvas) radarCanvas.style.display = 'block';
+
+            capturedEmotionDisplay.style.display = 'none';
             startEmotionBtn.style.display = 'none';
             stopEmotionBtn.style.display = 'inline-block';
             captureEmotionBtn.style.display = 'inline-block';
-            capturedEmotionDisplay.style.display = 'none';
 
-            // 레이더 캔버스 보이기
-            if (radarCanvas) radarCanvas.style.display = 'block';
+            emotionAnimationFrame = window.requestAnimationFrame(emotionLoop);
 
         } catch (error) {
+            console.error("Emotion init error:", error);
             alert("감정 분석 모델을 로드하는 데 실패했습니다.");
             startEmotionBtn.disabled = false;
             startEmotionBtn.textContent = "SCAN ON";
@@ -224,9 +231,15 @@ document.addEventListener('DOMContentLoaded', () => {
         isEmotionScanning = false;
         if (emotionAnimationFrame) window.cancelAnimationFrame(emotionAnimationFrame);
         if (emotionWebcam) emotionWebcam.stop();
-        emotionWebcamContainer.innerHTML = "";
+
+        const radarCanvas = document.getElementById('radar-canvas');
+        if (radarCanvas) {
+            radarCanvas.style.display = 'none';
+            const ctx = radarCanvas.getContext('2d');
+            ctx.clearRect(0, 0, radarCanvas.width, radarCanvas.height);
+        }
+
         capturedEmotionDisplay.style.display = 'none';
-        if (radarCanvas) radarCanvas.style.display = 'none';
         startEmotionBtn.style.display = 'inline-block';
         startEmotionBtn.disabled = false;
         startEmotionBtn.textContent = "SCAN ON";
@@ -237,37 +250,42 @@ document.addEventListener('DOMContentLoaded', () => {
     async function emotionLoop() {
         if (!isEmotionScanning) return;
         emotionWebcam.update();
-        const prediction = await emotionModel.predict(emotionWebcam.canvas);
-        lastPredictions = prediction;
-        drawRadar(prediction, emotionWebcam.canvas);
+        try {
+            const prediction = await emotionModel.predict(emotionWebcam.canvas);
+            lastPredictions = prediction;
+            drawRadar(prediction, emotionWebcam.canvas);
+        } catch(e) {
+            console.error("Predict error:", e);
+        }
         emotionAnimationFrame = window.requestAnimationFrame(emotionLoop);
     }
 
     async function captureEmotion() {
-        if (!emotionWebcam || !lastPredictions.length) return;
+        if (!lastPredictions.length) return;
 
-        // 스캔 멈추고 결과 고정
         isEmotionScanning = false;
         if (emotionAnimationFrame) window.cancelAnimationFrame(emotionAnimationFrame);
 
-        // 캡처 순간 레이더를 emotion-capture-canvas에 복사
+        const radarCanvas = document.getElementById('radar-canvas');
+
+        // 레이더 결과를 캡처 캔버스에 복사
         const ctx = emotionCaptureCanvas.getContext('2d');
         emotionCaptureCanvas.width = radarCanvas.width;
         emotionCaptureCanvas.height = radarCanvas.height;
         ctx.drawImage(radarCanvas, 0, 0);
 
-        // 결과 표시
         let topPrediction = { className: "", probability: 0 };
         lastPredictions.forEach(p => { if (p.probability > topPrediction.probability) topPrediction = p; });
-        capturedEmotionResult.textContent = `${topPrediction.className}`;
+        capturedEmotionResult.textContent = topPrediction.className;
 
+        if (radarCanvas) radarCanvas.style.display = 'none';
         captureEmotionBtn.style.display = 'none';
         capturedEmotionDisplay.style.display = 'block';
-        if (radarCanvas) radarCanvas.style.display = 'none';
     }
 
     function rescanEmotion() {
         capturedEmotionDisplay.style.display = 'none';
+        const radarCanvas = document.getElementById('radar-canvas');
         if (radarCanvas) radarCanvas.style.display = 'block';
         isEmotionScanning = true;
         captureEmotionBtn.style.display = 'inline-block';
@@ -276,8 +294,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function predictCapturedFace(imageDataUrl) {
         if (!emotionModel) {
-            try { emotionModel = await tmImage.load(EMOTION_URL + "model.json", EMOTION_URL + "metadata.json"); }
-            catch (e) { return; }
+            try {
+                emotionModel = await tmImage.load(EMOTION_URL + "model.json", EMOTION_URL + "metadata.json");
+            } catch (e) { return; }
         }
         const tempImg = new Image();
         tempImg.onload = async () => {
@@ -360,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { clientWidth: width, clientHeight: height } = globeContainer;
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
-        camera.position.z = 6;
+        camera.position.set(0, 0.8, 6);
         renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
         renderer.setSize(width, height);
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -393,12 +412,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         for (let i = 0; i < sphereCount; i++) {
             const material = faceMaterial ? faceMaterial.clone()
-                : new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(Math.random(), 0.6, 0.7), roughness: 0.2, metalness: 0.1 });
+                : new THREE.MeshStandardMaterial({
+                    color: new THREE.Color().setHSL(Math.random(), 0.6, 0.7),
+                    roughness: 0.2,
+                    metalness: 0.1
+                  });
             const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set((Math.random()-0.5)*4, (Math.random()-0.5)*3, (Math.random()-0.5)*1.5);
-            spheres.push({ mesh, velocity: new THREE.Vector3(),
+            mesh.position.set((Math.random()-0.5)*4, (Math.random()-0.5)*2 + 0.5, (Math.random()-0.5)*1.5);
+            spheres.push({
+                mesh,
+                velocity: new THREE.Vector3(),
                 angularVelocity: new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).multiplyScalar(0.05),
-                radius: 0.55 });
+                radius: 0.55
+            });
             scene.add(mesh);
         }
     }
@@ -411,8 +437,8 @@ document.addEventListener('DOMContentLoaded', () => {
             sphere.velocity.multiplyScalar(0.99);
             sphere.mesh.rotation.x += sphere.angularVelocity.x;
             sphere.mesh.rotation.y += sphere.angularVelocity.y;
-            if (sphere.mesh.position.y < -2.5) { sphere.mesh.position.y = -2.5; sphere.velocity.y *= -0.6; }
-            if (sphere.mesh.position.y > 2.5)  { sphere.mesh.position.y = 2.5;  sphere.velocity.y *= -0.6; }
+            if (sphere.mesh.position.y < -1.8) { sphere.mesh.position.y = -1.8; sphere.velocity.y *= -0.6; }
+            if (sphere.mesh.position.y > 3.0)  { sphere.mesh.position.y = 3.0;  sphere.velocity.y *= -0.6; }
             if (Math.abs(sphere.mesh.position.x) > 3.0) { sphere.mesh.position.x = Math.sign(sphere.mesh.position.x)*3.0; sphere.velocity.x *= -0.6; }
             if (Math.abs(sphere.mesh.position.z) > 1.5) { sphere.mesh.position.z = Math.sign(sphere.mesh.position.z)*1.5; sphere.velocity.z *= -0.6; }
         });
