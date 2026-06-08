@@ -67,28 +67,47 @@
 
             <div class="machine-wrapper">
                 <section id="machine" class="machine-section">
-                    <div class="gacha-machine">
-                        <div class="globe-container">
-                            <div class="inner-capsules" id="inner-capsules"></div>
-                        </div>
-                        <div class="machine-body">
-                            <div class="logo">GACHA</div>
-                            <div class="coin-slot-area">
-                                <div class="coin-slot"></div>
-                                <div class="price-tag">500</div>
-                            </div>
-                            <div class="handle-area">
-                                <div class="handle" id="handle">
-                                    <div class="handle-bar"></div>
-                                    <div class="handle-center"></div>
-                                </div>
-                            </div>
-                            <div class="exit-slot">
-                                <div class="chute" id="chute"></div>
-                            </div>
-                        </div>
-                        <div class="machine-base"></div>
-                    </div>
+                   <div class="gacha-machine">
+    <!-- 상단 원통형 투명 케이스 -->
+    <div class="cylinder-container">
+        <div class="cylinder-left-cap"></div>
+        <div class="cylinder-body">
+            <div class="inner-capsules" id="inner-capsules"></div>
+            <div class="cylinder-shine"></div>
+        </div>
+        <div class="cylinder-right-cap"></div>
+    </div>
+
+    <!-- 기계 몸체 -->
+    <div class="machine-body">
+        <div class="machine-logo">GACHA</div>
+
+        <!-- 왼쪽: 캡슐 출구 -->
+        <div class="machine-left">
+            <div class="exit-door">
+                <div class="exit-door-inner"></div>
+            </div>
+            <div class="exit-slot">
+                <div class="chute" id="chute"></div>
+            </div>
+        </div>
+
+        <!-- 오른쪽: 핸들 -->
+        <div class="machine-right">
+            <div class="coin-slot-area">
+                <div class="coin-slot"></div>
+                <div class="price-tag">500</div>
+            </div>
+            <div class="handle-area">
+                <div class="handle" id="handle">
+                    <div class="handle-bar"></div>
+                    <div class="handle-center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="machine-base"></div>
+</div>
                     <div class="controls">
                         <button id="spin-button" class="spin-btn">SPIN!</button>
                         <p class="instruction pixel-text">PUSH START BUTTON!</p>
