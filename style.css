@@ -166,9 +166,9 @@ body {
 
 .emotion-rec {
   font-family: 'Galmuri11', sans-serif;
-  font-size: 8px;
+  font-size: 11px;
   color: #444;
-  line-height: 1.7;
+  line-height: 1.8;
   text-align: left;
   padding: 10px 12px;
   background: #f8f8f8;
@@ -180,7 +180,6 @@ body {
   margin-top: auto;
   overflow-y: auto;
 }
-
 .captured-emotion-display {
   width: 240px; height: 240px;
   position: absolute; top: 0; left: 0;
@@ -485,9 +484,9 @@ body {
 
 .modal-desc {
   font-family: 'Galmuri11', sans-serif;
-  font-size: 8px;
+  font-size: 11px;
   color: #444;
-  line-height: 1.7;
+  line-height: 1.8;
   text-align: left;
   margin-top: 16px;
   padding: 10px 12px;
