@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let emotionModel, emotionWebcam;
     let isEmotionScanning = false, emotionAnimationFrame;
     let lastPredictions = [];
-    let cdRotation = 0, cdAnimFrame = null;
+    let cdRotation = 0;
 
     const EXTRA_EMOTIONS = [
         { className: 'ANXIETY', probability: 0.5 },
@@ -39,11 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const EMOTION_MAP = { '기쁨': 'JOY', '슬픔': 'SADNESS', '분노': 'ANGER' };
 
     const EMOTION_RECS = {
-        JOY:     "Chamomile tea with honey perfectly complements your joyful mood. Sweet macarons or fruit tarts will amplify your happiness. A warm latte with cinnamon is also a great match for your bright energy today.",
-        SADNESS: "A warm cup of hojicha or cocoa will gently comfort your heart. Dark chocolate and soft madeleines are perfect companions for quiet moments. Let a bowl of warm porridge or soup slowly ease your feelings.",
-        ANGER:   "Cool peppermint tea will help calm your heated mind. Crisp cucumber or celery snacks bring a refreshing reset. Sparkling water with lemon zest cleanses tension and restores your balance.",
-        ANXIETY: "Lavender or lemon balm tea soothes anxious nerves beautifully. Light rice crackers or plain yogurt settle an uneasy stomach. A small piece of dark chocolate can quietly ease your restless mind.",
-        LOVE:    "Rose hip tea or hibiscus tea mirrors your warm and loving heart. Strawberry desserts and soft cream puffs echo the sweetness of your emotion. Share a slice of tiramisu with someone special today."
+        JOY:     "Chamomile tea with honey perfectly complements your joyful mood. Sweet macarons or fruit tarts will amplify your happiness. A warm latte with cinnamon is also a great match.",
+        SADNESS: "A warm cup of hojicha or cocoa will gently comfort your heart. Dark chocolate and soft madeleines are perfect companions. Let warm porridge slowly ease your feelings.",
+        ANGER:   "Cool peppermint tea will calm your heated mind. Crisp cucumber or celery snacks bring a refreshing reset. Sparkling water with lemon zest cleanses tension.",
+        ANXIETY: "Lavender or lemon balm tea soothes anxious nerves. Light rice crackers or plain yogurt settle an uneasy stomach. A small piece of dark chocolate quietly eases restlessness.",
+        LOVE:    "Rose hip tea mirrors your warm and loving heart. Strawberry desserts and soft cream puffs echo your sweetness. Share a slice of tiramisu with someone special today."
     };
 
     const positiveMessages = [
@@ -55,78 +55,68 @@ document.addEventListener('DOMContentLoaded', () => {
         "MIRACLES BEGIN WHEN YOU BELIEVE.", "YOU WERE BORN TO BE LOVED."
     ];
 
-    // ── CD 2D 애니메이션 (가챠 캡슐 이미지) ──
+    // ── CD 2D (캡슐 회전) ──
     const capsuleColors = ['#ff8fa3','#a8d8ea','#b5ead7','#ffd6a5','#c9b1ff','#fdffb6'];
 
-    function drawCDGacha(rotation) {
+    function drawCD(rotation) {
         const ctx = cdCanvas.getContext('2d');
         const w = cdCanvas.width, h = cdCanvas.height;
-        const cx = w / 2, cy = h / 2;
-        const r = w / 2 - 3;
+        const cx = w/2, cy = h/2, r = w/2 - 2;
         ctx.clearRect(0, 0, w, h);
-
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate(rotation);
 
-        // 원형 배경
+        // CD 배경
         ctx.beginPath();
-        ctx.arc(0, 0, r, 0, Math.PI * 2);
-        ctx.fillStyle = '#f0f0f0';
+        ctx.arc(0, 0, r, 0, Math.PI*2);
+        ctx.fillStyle = '#dddad2';
         ctx.fill();
-        ctx.strokeStyle = '#cccccc';
-        ctx.lineWidth = 2;
-        ctx.stroke();
 
-        // 미니 캡슐 6개 원형으로 배치
-        const capsuleR = 14;
-        const orbitR = r * 0.62;
+        // 광택 링
+        for (let i = 0; i < 4; i++) {
+            ctx.beginPath();
+            ctx.arc(0, 0, r * (0.4 + i*0.15), 0, Math.PI*2);
+            ctx.strokeStyle = `rgba(255,255,255,${0.25 - i*0.05})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // 미니 캡슐 6개
+        const orbitR = r * 0.6;
         capsuleColors.forEach((color, i) => {
             const angle = (i / capsuleColors.length) * Math.PI * 2;
             const cx2 = Math.cos(angle) * orbitR;
             const cy2 = Math.sin(angle) * orbitR;
-
-            // 캡슐 몸통
             ctx.save();
             ctx.translate(cx2, cy2);
-            ctx.rotate(angle + Math.PI / 2);
-
+            ctx.rotate(angle + Math.PI/2);
+            const cr = 11;
             // 아래 반구
             ctx.beginPath();
-            ctx.arc(0, capsuleR * 0.25, capsuleR * 0.75, 0, Math.PI);
+            ctx.arc(0, cr*0.25, cr*0.75, 0, Math.PI);
             ctx.fillStyle = color;
             ctx.fill();
-
             // 위 반구
             ctx.beginPath();
-            ctx.arc(0, capsuleR * 0.25, capsuleR * 0.75, Math.PI, Math.PI * 2);
+            ctx.arc(0, cr*0.25, cr*0.75, Math.PI, Math.PI*2);
             ctx.fillStyle = '#ffffff';
             ctx.fill();
-
             // 테두리
             ctx.beginPath();
-            ctx.arc(0, capsuleR * 0.25, capsuleR * 0.75, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+            ctx.arc(0, cr*0.25, cr*0.75, 0, Math.PI*2);
+            ctx.strokeStyle = 'rgba(0,0,0,0.12)';
             ctx.lineWidth = 1;
             ctx.stroke();
-
-            // 중앙선
-            ctx.beginPath();
-            ctx.moveTo(-capsuleR * 0.75, capsuleR * 0.25);
-            ctx.lineTo(capsuleR * 0.75, capsuleR * 0.25);
-            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-
             ctx.restore();
         });
 
         // 가운데 구멍
         ctx.beginPath();
-        ctx.arc(0, 0, r * 0.13, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
+        ctx.arc(0, 0, r*0.14, 0, Math.PI*2);
+        ctx.fillStyle = '#f0ede6';
         ctx.fill();
-        ctx.strokeStyle = '#bbbbbb';
+        ctx.strokeStyle = '#bbb';
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
@@ -135,19 +125,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function cdLoop() {
         if (isMusicPlaying) cdRotation += 0.018;
-        drawCDGacha(cdRotation);
+        drawCD(cdRotation);
         requestAnimationFrame(cdLoop);
     }
-    drawCDGacha(0);
+    drawCD(0);
     cdLoop();
 
     // ── Music ──
     musicToggleBtn.addEventListener('click', () => {
-        if (isMusicPlaying) {
-            bgm.pause(); musicToggleBtn.textContent = 'PLAY';
-        } else {
-            bgm.play().catch(e => console.error(e)); musicToggleBtn.textContent = 'STOP';
-        }
+        if (isMusicPlaying) { bgm.pause(); musicToggleBtn.textContent = 'PLAY'; }
+        else { bgm.play().catch(e=>console.error(e)); musicToggleBtn.textContent = 'STOP'; }
         isMusicPlaying = !isMusicPlaying;
     });
 
@@ -156,12 +143,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             segmenter = await bodySegmentation.createSegmenter(
                 bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation,
-                { runtime: 'mediapipe', solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation', modelType: 'general' }
+                { runtime:'mediapipe', solutionPath:'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation', modelType:'general' }
             );
             loadingStatus.style.display = 'none';
             enableCameraBtn.disabled = false;
             triggerUploadBtn.disabled = false;
-        } catch (e) { loadingStatus.textContent = "Model load failed!"; }
+        } catch(e) { loadingStatus.textContent = "Model load failed!"; }
     }
 
     async function processImageSource(src) {
@@ -177,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!seg.length) { alert("No person found."); return null; }
             const mask = await bodySegmentation.toBinaryMask(seg, {r:0,g:0,b:0,a:255}, {r:0,g:0,b:0,a:0});
             const id = ctx.getImageData(0, 0, tmp.width, tmp.height);
-            for (let i = 0; i < id.data.length; i += 4) { if (mask.data[i+3] === 0) id.data[i+3] = 0; }
+            for (let i=0; i<id.data.length; i+=4) { if (mask.data[i+3]===0) id.data[i+3]=0; }
             ctx.putImageData(id, 0, 0);
             return tmp.toDataURL('image/png');
         } catch(e) { alert("Image processing error."); return null; }
@@ -186,20 +173,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateFace(url) {
         if (!url) return;
         capturedFaceDataUrl = url;
+        // 원 1개만: face-preview 숨기고 captured-face만 보여줌
+        facePreview.style.display = 'none';
         capturedFaceImg.src = url;
         capturedFaceImg.style.display = 'block';
-        facePreview.style.display = 'none';
         predictCapturedFace(url);
         createSpheres();
     }
 
-    // ── 레이더 차트 (곡선 다각형 + 다각형 클리핑) ──
+    // ── 레이더 차트 (각은 뾰족, 사이만 곡선) ──
     function drawRadar(predictions, webcamCanvas) {
         const radarCanvas = document.getElementById('radar-canvas');
         if (!radarCanvas) return;
         const ctx = radarCanvas.getContext('2d');
 
-        const allPredictions = [
+        const all = [
             ...predictions.map(p => ({
                 className: EMOTION_MAP[p.className] || p.className.toUpperCase(),
                 probability: p.probability
@@ -208,64 +196,66 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         const size = radarCanvas.width;
-        const cx = size / 2, cy = size / 2;
+        const cx = size/2, cy = size/2;
         const maxR = size * 0.33;
         const labelR = size * 0.46;
-        const n = allPredictions.length;
+        const n = all.length;
 
         ctx.clearRect(0, 0, size, size);
 
-        // 데이터 포인트
-        const pts = allPredictions.map((p, i) => {
-            const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
+        // 데이터 포인트 (각 꼭짓점)
+        const pts = all.map((p, i) => {
+            const angle = (i/n)*Math.PI*2 - Math.PI/2;
             const r = maxR * Math.max(p.probability, 0.05);
-            return { x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r };
+            return { x: cx + Math.cos(angle)*r, y: cy + Math.sin(angle)*r, angle };
         });
 
-        // 곡선 경로 만들기 (cardinal spline)
-        function curvedPath(points) {
+        // 꼭짓점은 날카롭게, 사이만 곡선으로 그리는 경로
+        function sharpStarPath(points) {
             ctx.beginPath();
             const len = points.length;
             for (let i = 0; i < len; i++) {
-                const p0 = points[(i - 1 + len) % len];
-                const p1 = points[i];
-                const p2 = points[(i + 1) % len];
-                const p3 = points[(i + 2) % len];
-                if (i === 0) ctx.moveTo(p1.x, p1.y);
-                const cp1x = p1.x + (p2.x - p0.x) / 6;
-                const cp1y = p1.y + (p2.y - p0.y) / 6;
-                const cp2x = p2.x - (p3.x - p1.x) / 6;
-                const cp2y = p2.y - (p3.y - p1.y) / 6;
-                ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+                const curr = points[i];
+                const next = points[(i+1) % len];
+                // 꼭짓점에서 시작 (날카롭게)
+                if (i === 0) ctx.moveTo(curr.x, curr.y);
+                else ctx.lineTo(curr.x, curr.y);
+                // 다음 꼭짓점으로 가는 중간에만 곡선
+                const midX = (curr.x + next.x) / 2;
+                const midY = (curr.y + next.y) / 2;
+                // 중심 방향으로 살짝 당긴 컨트롤 포인트
+                const cpX = midX + (cx - midX) * 0.18;
+                const cpY = midY + (cy - midY) * 0.18;
+                ctx.quadraticCurveTo(cpX, cpY, next.x, next.y);
             }
             ctx.closePath();
         }
 
-        // 웹캠 곡선 클리핑
+        // 웹캠 클리핑
         if (webcamCanvas) {
             ctx.save();
-            curvedPath(pts);
+            sharpStarPath(pts);
             ctx.clip();
-            ctx.drawImage(webcamCanvas, cx - maxR, cy - maxR, maxR * 2, maxR * 2);
+            ctx.drawImage(webcamCanvas, cx-maxR, cy-maxR, maxR*2, maxR*2);
             ctx.restore();
         }
 
         // 동심원
         [0.33, 0.66, 1.0].forEach(ratio => {
             ctx.beginPath();
-            ctx.arc(cx, cy, maxR * ratio, 0, Math.PI * 2);
-            ctx.strokeStyle = ratio === 1.0 ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.13)';
-            ctx.lineWidth = ratio === 1.0 ? 1.5 : 1;
-            ctx.setLineDash(ratio === 1.0 ? [] : [3,4]);
+            ctx.arc(cx, cy, maxR*ratio, 0, Math.PI*2);
+            ctx.strokeStyle = ratio===1.0 ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.13)';
+            ctx.lineWidth = ratio===1.0 ? 1.5 : 1;
+            ctx.setLineDash(ratio===1.0 ? [] : [3,4]);
             ctx.stroke();
             ctx.setLineDash([]);
         });
 
         // 축 + 라벨
-        allPredictions.forEach((p, i) => {
-            const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
-            const x = cx + Math.cos(angle) * maxR;
-            const y = cy + Math.sin(angle) * maxR;
+        all.forEach((p, i) => {
+            const angle = (i/n)*Math.PI*2 - Math.PI/2;
+            const x = cx + Math.cos(angle)*maxR;
+            const y = cy + Math.sin(angle)*maxR;
             ctx.beginPath();
             ctx.moveTo(cx, cy);
             ctx.lineTo(x, y);
@@ -276,12 +266,12 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillStyle = '#222';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(p.className, cx + Math.cos(angle) * labelR, cy + Math.sin(angle) * labelR);
+            ctx.fillText(p.className, cx+Math.cos(angle)*labelR, cy+Math.sin(angle)*labelR);
         });
 
-        // 곡선 다각형 테두리
-        curvedPath(pts);
-        ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+        // 별 모양 테두리 (뾰족한 꼭짓점 + 곡선 사이)
+        sharpStarPath(pts);
+        ctx.strokeStyle = 'rgba(0,0,0,0.6)';
         ctx.lineWidth = 1.5;
         ctx.stroke();
     }
@@ -293,13 +283,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             startEmotionBtn.disabled = true;
             startEmotionBtn.textContent = "LOADING...";
-            if (!emotionModel) emotionModel = await tmImage.load(EMOTION_URL + "model.json", EMOTION_URL + "metadata.json");
-            emotionWebcam = new tmImage.Webcam(250, 250, true);
+            if (!emotionModel) emotionModel = await tmImage.load(EMOTION_URL+"model.json", EMOTION_URL+"metadata.json");
+            emotionWebcam = new tmImage.Webcam(240, 240, true);
             await emotionWebcam.setup();
             await emotionWebcam.play();
             isEmotionScanning = true;
-            const rc = document.getElementById('radar-canvas');
-            if (rc) rc.style.display = 'block';
+            document.getElementById('radar-canvas').style.display = 'block';
             capturedEmotionDisplay.style.display = 'none';
             if (emotionRec) emotionRec.style.display = 'none';
             startEmotionBtn.style.display = 'none';
@@ -343,27 +332,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!lastPredictions.length) return;
         isEmotionScanning = false;
         if (emotionAnimationFrame) cancelAnimationFrame(emotionAnimationFrame);
-
         const rc = document.getElementById('radar-canvas');
         const ctx = emotionCaptureCanvas.getContext('2d');
         emotionCaptureCanvas.width = rc.width;
         emotionCaptureCanvas.height = rc.height;
         ctx.drawImage(rc, 0, 0);
-
         const all = [
-            ...lastPredictions.map(p => ({ className: EMOTION_MAP[p.className] || p.className.toUpperCase(), probability: p.probability })),
+            ...lastPredictions.map(p => ({ className: EMOTION_MAP[p.className]||p.className.toUpperCase(), probability: p.probability })),
             ...EXTRA_EMOTIONS
         ];
-        let top = { className: "JOY", probability: 0 };
+        let top = { className:'JOY', probability:0 };
         all.forEach(p => { if (p.probability > top.probability) top = p; });
         capturedEmotionResult.textContent = top.className;
-
-        // 추천 텍스트
-        if (emotionRec) {
-            emotionRec.textContent = EMOTION_RECS[top.className] || EMOTION_RECS.JOY;
-            emotionRec.style.display = 'block';
-        }
-
+        if (emotionRec) { emotionRec.textContent = EMOTION_RECS[top.className]||EMOTION_RECS.JOY; emotionRec.style.display = 'block'; }
         rc.style.display = 'none';
         captureEmotionBtn.style.display = 'none';
         capturedEmotionDisplay.style.display = 'block';
@@ -381,15 +362,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function predictCapturedFace(url) {
         if (!emotionModel) {
-            try { emotionModel = await tmImage.load(EMOTION_URL + "model.json", EMOTION_URL + "metadata.json"); }
+            try { emotionModel = await tmImage.load(EMOTION_URL+"model.json", EMOTION_URL+"metadata.json"); }
             catch(e) { return; }
         }
         const img = new Image();
         img.onload = async () => {
             const pred = await emotionModel.predict(img);
-            let top = { className: "JOY", probability: 0 };
+            let top = { className:'JOY', probability:0 };
             pred.forEach(p => { if (p.probability > top.probability) top = p; });
-            const eng = EMOTION_MAP[top.className] || top.className.toUpperCase();
+            const eng = EMOTION_MAP[top.className]||top.className.toUpperCase();
             if (capturedEmotionText) { capturedEmotionText.textContent = `EMOTION: ${eng}`; capturedEmotionText.style.display = 'block'; }
         };
         img.src = url;
@@ -427,68 +408,68 @@ document.addEventListener('DOMContentLoaded', () => {
         triggerUploadBtn.textContent = "PROCESSING...";
         try {
             const img = await new Promise((res, rej) => {
-                const i = new Image();
-                i.onload = () => res(i); i.onerror = rej;
+                const i = new Image(); i.onload = ()=>res(i); i.onerror = rej;
                 i.src = URL.createObjectURL(file);
             });
             updateFace(await processImageSource(img));
         } catch(err) { alert("Image load failed."); }
-        finally { triggerUploadBtn.disabled = false; triggerUploadBtn.textContent = "UPLOAD PHOTO"; uploadPhotoInput.value = ''; }
+        finally { triggerUploadBtn.disabled=false; triggerUploadBtn.textContent="UPLOAD PHOTO"; uploadPhotoInput.value=''; }
     });
 
     function stopWebcam() {
         if (video.srcObject) {
-            video.srcObject.getTracks().forEach(t => t.stop());
+            video.srcObject.getTracks().forEach(t=>t.stop());
             videoContainer.style.display = 'none';
             takePhotoBtn.style.display = 'none';
             enableCameraBtn.style.display = 'inline-block';
         }
     }
 
-    // ── Three.js (캡슐 40개) ──
+    // ── Three.js (캡슐 40개, 바닥 올림) ──
     let scene, camera, renderer, spheres = [];
     const sphereCount = 40;
 
     function init3D() {
-        const { clientWidth: w, clientHeight: h } = globeContainer;
+        const { clientWidth:w, clientHeight:h } = globeContainer;
         scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 1000);
-        camera.position.set(0, 2.2, 6);
-        renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        camera = new THREE.PerspectiveCamera(40, w/h, 0.1, 1000);
+        camera.position.set(0, 2.5, 6);
+        renderer = new THREE.WebGLRenderer({ alpha:true, antialias:true });
         renderer.setSize(w, h);
         renderer.setPixelRatio(window.devicePixelRatio);
         globeContainer.appendChild(renderer.domElement);
         scene.add(new THREE.AmbientLight(0xffffff, 0.8));
         const light = new THREE.DirectionalLight(0xffffff, 0.6);
-        light.position.set(5, 5, 10);
+        light.position.set(5,5,10);
         scene.add(light);
         createSpheres();
         animate();
     }
 
     async function createSpheres() {
-        spheres.forEach(s => scene.remove(s.mesh));
+        spheres.forEach(s=>scene.remove(s.mesh));
         spheres = [];
-        const geometry = new THREE.SphereGeometry(0.5, 32, 32);
-        let faceMaterial = null;
+        const geometry = new THREE.SphereGeometry(0.48, 32, 32);
+        let faceMat = null;
         if (capturedFaceDataUrl) {
             const c = document.createElement('canvas');
             const ctx = c.getContext('2d');
             c.width = 256; c.height = 256;
             ctx.fillStyle = '#fecb05';
-            ctx.fillRect(0, 0, 256, 256);
-            const img = await new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = capturedFaceDataUrl; });
-            ctx.drawImage(img, 28, 28, 200, 200);
-            faceMaterial = new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(c), roughness: 0.3 });
+            ctx.fillRect(0,0,256,256);
+            const img = await new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=capturedFaceDataUrl;});
+            ctx.drawImage(img,28,28,200,200);
+            faceMat = new THREE.MeshStandardMaterial({ map:new THREE.CanvasTexture(c), roughness:0.3 });
         }
-        for (let i = 0; i < sphereCount; i++) {
-            const material = faceMaterial ? faceMaterial.clone()
-                : new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(i / sphereCount, 0.65, 0.68), roughness: 0.2, metalness: 0.1 });
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set((Math.random()-0.5)*4, (Math.random()-0.5)*2 + 2.0, (Math.random()-0.5)*1.5);
-            spheres.push({ mesh, velocity: new THREE.Vector3(),
-                angularVelocity: new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).multiplyScalar(0.05),
-                radius: 0.5 });
+        for (let i=0; i<sphereCount; i++) {
+            const mat = faceMat ? faceMat.clone()
+                : new THREE.MeshStandardMaterial({ color:new THREE.Color().setHSL(i/sphereCount,0.65,0.68), roughness:0.2, metalness:0.1 });
+            const mesh = new THREE.Mesh(geometry, mat);
+            // 초기 위치: 위쪽에서 시작
+            mesh.position.set((Math.random()-0.5)*3.5, 1.5 + Math.random()*3, (Math.random()-0.5)*1.3);
+            spheres.push({ mesh, velocity:new THREE.Vector3(0, -0.05-Math.random()*0.05, 0),
+                angularVelocity:new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).multiplyScalar(0.05),
+                radius:0.48 });
             scene.add(mesh);
         }
     }
@@ -496,28 +477,29 @@ document.addEventListener('DOMContentLoaded', () => {
     function animate() {
         requestAnimationFrame(animate);
         spheres.forEach(s => {
-            s.velocity.y -= 0.01;
+            s.velocity.y -= 0.008;
             s.mesh.position.add(s.velocity);
             s.velocity.multiplyScalar(0.99);
             s.mesh.rotation.x += s.angularVelocity.x;
             s.mesh.rotation.y += s.angularVelocity.y;
-            // 바닥을 올려서 캡슐이 케이스 위로 나오게
-            if (s.mesh.position.y < -0.3) { s.mesh.position.y = -0.3; s.velocity.y *= -0.6; }
-            if (s.mesh.position.y > 4.5)  { s.mesh.position.y = 4.5;  s.velocity.y *= -0.6; }
-            if (Math.abs(s.mesh.position.x) > 2.8) { s.mesh.position.x = Math.sign(s.mesh.position.x)*2.8; s.velocity.x *= -0.6; }
-            if (Math.abs(s.mesh.position.z) > 1.4) { s.mesh.position.z = Math.sign(s.mesh.position.z)*1.4; s.velocity.z *= -0.6; }
+
+            // 바닥 = 0.5 (캡슐이 케이스 상단 위로 올라오게)
+            if (s.mesh.position.y < 0.5)  { s.mesh.position.y = 0.5;  s.velocity.y *= -0.55; }
+            if (s.mesh.position.y > 5.0)  { s.mesh.position.y = 5.0;  s.velocity.y *= -0.6; }
+            if (Math.abs(s.mesh.position.x) > 2.6) { s.mesh.position.x = Math.sign(s.mesh.position.x)*2.6; s.velocity.x *= -0.6; }
+            if (Math.abs(s.mesh.position.z) > 1.3) { s.mesh.position.z = Math.sign(s.mesh.position.z)*1.3; s.velocity.z *= -0.6; }
         });
-        for (let i = 0; i < spheres.length; i++) {
-            for (let j = i+1; j < spheres.length; j++) {
-                const s1 = spheres[i], s2 = spheres[j];
-                const diff = s1.mesh.position.clone().sub(s2.mesh.position);
-                const dist = diff.length(), md = s1.radius + s2.radius;
-                if (dist < md) {
-                    const n = diff.normalize(), ov = md - dist;
+        for (let i=0; i<spheres.length; i++) {
+            for (let j=i+1; j<spheres.length; j++) {
+                const s1=spheres[i], s2=spheres[j];
+                const diff=s1.mesh.position.clone().sub(s2.mesh.position);
+                const dist=diff.length(), md=s1.radius+s2.radius;
+                if (dist<md) {
+                    const n=diff.normalize(), ov=md-dist;
                     s1.mesh.position.add(n.clone().multiplyScalar(ov/2));
                     s2.mesh.position.sub(n.clone().multiplyScalar(ov/2));
-                    const rv = s1.velocity.clone().sub(s2.velocity), vn = rv.dot(n);
-                    if (vn < 0) { const imp = n.multiplyScalar(-(1.8)*vn/2); s1.velocity.add(imp); s2.velocity.sub(imp); }
+                    const rv=s1.velocity.clone().sub(s2.velocity), vn=rv.dot(n);
+                    if (vn<0) { const imp=n.multiplyScalar(-1.8*vn/2); s1.velocity.add(imp); s2.velocity.sub(imp); }
                 }
             }
         }
@@ -528,9 +510,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isSpinning) return;
         isSpinning = true;
         handle.classList.add('spin');
-        spheres.forEach(s => s.velocity.set((Math.random()-0.5)*0.5, Math.random()*0.9, (Math.random()-0.5)*0.5));
+        spheres.forEach(s=>s.velocity.set((Math.random()-0.5)*0.5, Math.random()*0.8, (Math.random()-0.5)*0.5));
         setTimeout(dropCapsule, 800);
-        setTimeout(() => { handle.classList.remove('spin'); isSpinning = false; }, 1200);
+        setTimeout(()=>{ handle.classList.remove('spin'); isSpinning=false; }, 1200);
     }
 
     async function dropCapsule() {
@@ -539,18 +521,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (capturedFaceDataUrl) {
             const c = document.createElement('canvas');
             const ctx = c.getContext('2d');
-            c.width = 100; c.height = 100;
-            ctx.fillStyle = '#fecb05';
-            ctx.fillRect(0,0,100,100);
-            const img = await new Promise(r => { const i = new Image(); i.onload = ()=>r(i); i.src = capturedFaceDataUrl; });
-            ctx.drawImage(img, 10, 10, 80, 80);
-            cap.style.backgroundImage = `url(${c.toDataURL()})`;
-            cap.style.backgroundSize = 'cover';
+            c.width=100; c.height=100;
+            ctx.fillStyle='#fecb05'; ctx.fillRect(0,0,100,100);
+            const img = await new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=capturedFaceDataUrl;});
+            ctx.drawImage(img,10,10,80,80);
+            cap.style.backgroundImage=`url(${c.toDataURL()})`;
+            cap.style.backgroundSize='cover';
         } else {
-            cap.style.backgroundColor = new THREE.Color().setHSL(Math.random(), 0.8, 0.65).getStyle();
+            cap.style.backgroundColor = new THREE.Color().setHSL(Math.random(),0.8,0.65).getStyle();
         }
         chute.appendChild(cap);
-        setTimeout(() => { showResult(cap.style.cssText); cap.remove(); }, 800);
+        setTimeout(()=>{ showResult(cap.style.cssText); cap.remove(); }, 800);
     }
 
     function showResult(capsuleStyle) {
