@@ -37,11 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
         { className: 'LOVE',    probability: 0.5 }
     ];
 
-    // 한글 → 영어 매핑 (모든 가능한 표현 포함)
     const EMOTION_MAP = {
         '기쁨': 'JOY', '행복': 'JOY', '즐거움': 'JOY',
         '슬픔': 'SADNESS', '슬퍼': 'SADNESS',
-        '분노': 'ANGER', '화남': 'ANGER', '화': 'ANGER', '怒り': 'ANGER', '怒': 'ANGER',
+        '분노': 'ANGER', '화남': 'ANGER', '화': 'ANGER',
         'angry': 'ANGER', 'anger': 'ANGER',
         'happy': 'JOY', 'joy': 'JOY',
         'sad': 'SADNESS', 'sadness': 'SADNESS',
@@ -49,14 +48,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function toEng(className) {
         if (!className) return 'UNKNOWN';
-        const lower = className.toLowerCase().trim();
-        const direct = EMOTION_MAP[className.trim()] || EMOTION_MAP[lower];
-        if (direct) return direct;
-        // 포함 검색
-        if (lower.includes('분노') || lower.includes('화남') || lower.includes('화') || lower.includes('anger') || lower.includes('angry')) return 'ANGER';
-        if (lower.includes('기쁨') || lower.includes('행복') || lower.includes('joy') || lower.includes('happy')) return 'JOY';
-        if (lower.includes('슬픔') || lower.includes('sad')) return 'SADNESS';
-        return className.toUpperCase().trim();
+        const t = className.trim();
+        const l = t.toLowerCase();
+        if (EMOTION_MAP[t]) return EMOTION_MAP[t];
+        if (EMOTION_MAP[l]) return EMOTION_MAP[l];
+        if (l.includes('분노') || l.includes('화남') || l.includes('화') || l.includes('anger') || l.includes('angry')) return 'ANGER';
+        if (l.includes('기쁨') || l.includes('행복') || l.includes('joy') || l.includes('happy')) return 'JOY';
+        if (l.includes('슬픔') || l.includes('sad')) return 'SADNESS';
+        return t.toUpperCase();
     }
 
     const EMOTION_RECS = {
@@ -76,46 +75,28 @@ document.addEventListener('DOMContentLoaded', () => {
         "MIRACLES BEGIN WHEN YOU BELIEVE.", "YOU WERE BORN TO BE LOVED."
     ];
 
-    // ── 기본 레이더 그리기 (스캔 전 빈 상태) ──
+    // ── 빈 레이더 ──
     function drawEmptyRadar() {
-        const radarCanvas = document.getElementById('radar-canvas');
-        if (!radarCanvas) return;
-        const ctx = radarCanvas.getContext('2d');
-        const defaultLabels = ['JOY', 'SADNESS', 'ANGER', 'ANXIETY', 'LOVE'];
-        const size = radarCanvas.width;
-        const cx = size/2, cy = size/2;
-        const maxR = size * 0.33;
-        const labelR = size * 0.46;
-        const n = defaultLabels.length;
-
+        const rc = document.getElementById('radar-canvas');
+        if (!rc) return;
+        const ctx = rc.getContext('2d');
+        const labels = ['JOY', 'SADNESS', 'ANGER', 'ANXIETY', 'LOVE'];
+        const size = rc.width, cx = size/2, cy = size/2;
+        const maxR = size*0.33, labelR = size*0.46, n = labels.length;
         ctx.clearRect(0, 0, size, size);
-
-        // 동심원
         [0.33, 0.66, 1.0].forEach(ratio => {
-            ctx.beginPath();
-            ctx.arc(cx, cy, maxR*ratio, 0, Math.PI*2);
+            ctx.beginPath(); ctx.arc(cx, cy, maxR*ratio, 0, Math.PI*2);
             ctx.strokeStyle = ratio===1.0 ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.12)';
             ctx.lineWidth = ratio===1.0 ? 1.5 : 1;
-            ctx.setLineDash(ratio===1.0 ? [] : [3,4]);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            ctx.setLineDash(ratio===1.0 ? [] : [3,4]); ctx.stroke(); ctx.setLineDash([]);
         });
-
-        // 축 + 라벨
-        defaultLabels.forEach((label, i) => {
+        labels.forEach((label, i) => {
             const angle = (i/n)*Math.PI*2 - Math.PI/2;
-            const x = cx + Math.cos(angle)*maxR;
-            const y = cy + Math.sin(angle)*maxR;
-            ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.lineTo(x, y);
-            ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            ctx.font = '7px "Press Start 2P", cursive';
-            ctx.fillStyle = '#555';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            ctx.beginPath(); ctx.moveTo(cx, cy);
+            ctx.lineTo(cx+Math.cos(angle)*maxR, cy+Math.sin(angle)*maxR);
+            ctx.strokeStyle='rgba(0,0,0,0.15)'; ctx.lineWidth=1; ctx.stroke();
+            ctx.font='7px "Press Start 2P", cursive';
+            ctx.fillStyle='#555'; ctx.textAlign='center'; ctx.textBaseline='middle';
             ctx.fillText(label, cx+Math.cos(angle)*labelR, cy+Math.sin(angle)*labelR);
         });
     }
@@ -131,16 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate(rotation);
-        ctx.beginPath();
-        ctx.arc(0, 0, r, 0, Math.PI*2);
-        ctx.fillStyle = '#dddad2';
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI*2);
+        ctx.fillStyle = '#dddad2'; ctx.fill();
         for (let i=0; i<4; i++) {
-            ctx.beginPath();
-            ctx.arc(0, 0, r*(0.4+i*0.15), 0, Math.PI*2);
-            ctx.strokeStyle = `rgba(255,255,255,${0.25-i*0.05})`;
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            ctx.beginPath(); ctx.arc(0, 0, r*(0.4+i*0.15), 0, Math.PI*2);
+            ctx.strokeStyle = `rgba(255,255,255,${0.25-i*0.05})`; ctx.lineWidth=2; ctx.stroke();
         }
         const orbitR = r * 0.6;
         capsuleColors.forEach((color, i) => {
@@ -151,10 +127,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const cr = 11;
             ctx.beginPath(); ctx.arc(0, cr*0.25, cr*0.75, 0, Math.PI); ctx.fillStyle=color; ctx.fill();
             ctx.beginPath(); ctx.arc(0, cr*0.25, cr*0.75, Math.PI, Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
-            ctx.beginPath(); ctx.arc(0, cr*0.25, cr*0.75, 0, Math.PI*2); ctx.strokeStyle='rgba(0,0,0,0.12)'; ctx.lineWidth=1; ctx.stroke();
+            ctx.beginPath(); ctx.arc(0, cr*0.25, cr*0.75, 0, Math.PI*2);
+            ctx.strokeStyle='rgba(0,0,0,0.12)'; ctx.lineWidth=1; ctx.stroke();
             ctx.restore();
         });
-        ctx.beginPath(); ctx.arc(0,0,r*0.14,0,Math.PI*2); ctx.fillStyle='#f0ede6'; ctx.fill();
+        ctx.beginPath(); ctx.arc(0,0,r*0.14,0,Math.PI*2);
+        ctx.fillStyle='#f0ede6'; ctx.fill();
         ctx.strokeStyle='#bbb'; ctx.lineWidth=1.5; ctx.stroke();
         ctx.restore();
     }
@@ -167,12 +145,10 @@ document.addEventListener('DOMContentLoaded', () => {
     drawCD(0);
     cdLoop();
 
-    // 페이지 로드시 빈 레이더 바로 표시
+    // 페이지 로드시 빈 레이더 표시
     const radarCanvas = document.getElementById('radar-canvas');
     if (radarCanvas) radarCanvas.style.display = 'block';
     drawEmptyRadar();
-
-    // 추천란 공란으로 보여주기
     if (emotionRec) { emotionRec.textContent = ''; emotionRec.style.display = 'block'; }
 
     // ── Music ──
@@ -216,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateFace(url) {
         if (!url) return;
         capturedFaceDataUrl = url;
-        // 원 1개만: face-preview 완전히 숨기고 captured-face만
         facePreview.style.display = 'none';
         capturedFaceImg.src = url;
         capturedFaceImg.style.display = 'block';
@@ -224,66 +199,47 @@ document.addEventListener('DOMContentLoaded', () => {
         createSpheres();
     }
 
-    // ── 레이더 차트 (각 꼭짓점 완전히 뾰족하게) ──
+    // ── 레이더 차트 (완전 직선, 꼭짓점 뾰족) ──
     function drawRadar(predictions, webcamCanvas) {
         const rc = document.getElementById('radar-canvas');
         if (!rc) return;
         const ctx = rc.getContext('2d');
 
         const all = [
-            ...predictions.map(p => ({
-                className: toEng(p.className),
-                probability: p.probability
-            })),
+            ...predictions.map(p => ({ className: toEng(p.className), probability: p.probability })),
             ...EXTRA_EMOTIONS
         ];
 
-        const size = rc.width;
-        const cx = size/2, cy = size/2;
-        const maxR = size * 0.33;
-        const labelR = size * 0.46;
-        const n = all.length;
+        const size = rc.width, cx = size/2, cy = size/2;
+        const maxR = size*0.33, labelR = size*0.46, n = all.length;
 
         ctx.clearRect(0, 0, size, size);
 
-        // 데이터 포인트
         const pts = all.map((p, i) => {
             const angle = (i/n)*Math.PI*2 - Math.PI/2;
             const r = maxR * Math.max(p.probability, 0.05);
             return { x: cx+Math.cos(angle)*r, y: cy+Math.sin(angle)*r };
         });
 
-        // 완전히 직선으로 뾰족한 별 경로
         function sharpPath(points) {
             ctx.beginPath();
-            points.forEach((pt, i) => {
-                if (i===0) ctx.moveTo(pt.x, pt.y);
-                else ctx.lineTo(pt.x, pt.y);
-            });
+            points.forEach((pt, i) => { if(i===0) ctx.moveTo(pt.x,pt.y); else ctx.lineTo(pt.x,pt.y); });
             ctx.closePath();
         }
 
-        // 웹캠 클리핑
         if (webcamCanvas) {
-            ctx.save();
-            sharpPath(pts);
-            ctx.clip();
+            ctx.save(); sharpPath(pts); ctx.clip();
             ctx.drawImage(webcamCanvas, cx-maxR, cy-maxR, maxR*2, maxR*2);
             ctx.restore();
         }
 
-        // 동심원
         [0.33, 0.66, 1.0].forEach(ratio => {
-            ctx.beginPath();
-            ctx.arc(cx, cy, maxR*ratio, 0, Math.PI*2);
+            ctx.beginPath(); ctx.arc(cx, cy, maxR*ratio, 0, Math.PI*2);
             ctx.strokeStyle = ratio===1.0 ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.13)';
             ctx.lineWidth = ratio===1.0 ? 1.5 : 1;
-            ctx.setLineDash(ratio===1.0 ? [] : [3,4]);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            ctx.setLineDash(ratio===1.0 ? [] : [3,4]); ctx.stroke(); ctx.setLineDash([]);
         });
 
-        // 축 + 라벨
         all.forEach((p, i) => {
             const angle = (i/n)*Math.PI*2 - Math.PI/2;
             const x = cx+Math.cos(angle)*maxR, y = cy+Math.sin(angle)*maxR;
@@ -294,11 +250,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillText(p.className, cx+Math.cos(angle)*labelR, cy+Math.sin(angle)*labelR);
         });
 
-        // 완전 직선 별 모양
         sharpPath(pts);
-        ctx.strokeStyle='rgba(0,0,0,0.65)';
-        ctx.lineWidth=1.8;
-        ctx.stroke();
+        ctx.strokeStyle='rgba(0,0,0,0.65)'; ctx.lineWidth=1.8; ctx.stroke();
     }
 
     // ── Emotion ──
@@ -320,10 +273,8 @@ document.addEventListener('DOMContentLoaded', () => {
             captureEmotionBtn.style.display = 'inline-block';
             emotionAnimationFrame = requestAnimationFrame(emotionLoop);
         } catch(e) {
-            console.error(e);
-            alert("Emotion model load failed.");
-            startEmotionBtn.disabled = false;
-            startEmotionBtn.textContent = "SCAN ON";
+            console.error(e); alert("Emotion model load failed.");
+            startEmotionBtn.disabled = false; startEmotionBtn.textContent = "SCAN ON";
         }
     }
 
@@ -332,12 +283,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (emotionAnimationFrame) cancelAnimationFrame(emotionAnimationFrame);
         if (emotionWebcam) emotionWebcam.stop();
         capturedEmotionDisplay.style.display = 'none';
+        if (emotionRec) emotionRec.textContent = '';
         startEmotionBtn.style.display = 'inline-block';
-        startEmotionBtn.disabled = false;
-        startEmotionBtn.textContent = "SCAN ON";
+        startEmotionBtn.disabled = false; startEmotionBtn.textContent = "SCAN ON";
         stopEmotionBtn.style.display = 'none';
         captureEmotionBtn.style.display = 'none';
-        // 빈 레이더로 복원
         drawEmptyRadar();
     }
 
@@ -356,7 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isEmotionScanning = false;
         if (emotionAnimationFrame) cancelAnimationFrame(emotionAnimationFrame);
 
-        // 캡처 캔버스에 복사
         const rc = document.getElementById('radar-canvas');
         const ctx = emotionCaptureCanvas.getContext('2d');
         emotionCaptureCanvas.width = rc.width;
@@ -370,16 +319,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let top = { className:'JOY', probability:0 };
         all.forEach(p => { if (p.probability > top.probability) top = p; });
 
-        // 결과: 원 그래프 아래 큰 글씨
+        // 감정 이름: 원 아래, 추천 박스 위
         capturedEmotionResult.textContent = top.className;
-        capturedEmotionResult.style.fontSize = '18px';
-        capturedEmotionResult.style.fontWeight = 'bold';
-        capturedEmotionResult.style.color = '#111';
 
         // 추천 텍스트
-        if (emotionRec) {
-            emotionRec.textContent = EMOTION_RECS[top.className] || EMOTION_RECS.JOY;
-        }
+        if (emotionRec) emotionRec.textContent = EMOTION_RECS[top.className] || EMOTION_RECS.JOY;
 
         rc.style.display = 'none';
         captureEmotionBtn.style.display = 'none';
@@ -406,7 +350,10 @@ document.addEventListener('DOMContentLoaded', () => {
             let top = { className:'JOY', probability:0 };
             pred.forEach(p => { if (p.probability > top.probability) top = p; });
             const eng = toEng(top.className);
-            if (capturedEmotionText) { capturedEmotionText.textContent = `EMOTION: ${eng}`; capturedEmotionText.style.display = 'block'; }
+            if (capturedEmotionText) {
+                capturedEmotionText.textContent = `EMOTION: ${eng}`;
+                capturedEmotionText.style.display = 'block';
+            }
         };
         img.src = url;
     }
@@ -439,8 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
     uploadPhotoInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        triggerUploadBtn.disabled = true;
-        triggerUploadBtn.textContent = "PROCESSING...";
+        triggerUploadBtn.disabled = true; triggerUploadBtn.textContent = "PROCESSING...";
         try {
             const img = await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=URL.createObjectURL(file); });
             updateFace(await processImageSource(img));
@@ -457,9 +403,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ── Three.js (캡슐 80개, 크기 2배) ──
+    // ── Three.js (캡슐 56개, 원래 크기 0.48) ──
     let scene, camera, renderer, spheres = [];
-    const sphereCount = 80;
+    const sphereCount = 56;
 
     function init3D() {
         const { clientWidth:w, clientHeight:h } = globeContainer;
@@ -480,8 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function createSpheres() {
         spheres.forEach(s=>scene.remove(s.mesh));
         spheres = [];
-        // 크기 2배: 0.48 → 0.96
-        const geometry = new THREE.SphereGeometry(0.96, 32, 32);
+        const geometry = new THREE.SphereGeometry(0.48, 32, 32);
         let faceMat = null;
         if (capturedFaceDataUrl) {
             const c = document.createElement('canvas');
@@ -496,10 +441,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const mat = faceMat ? faceMat.clone()
                 : new THREE.MeshStandardMaterial({ color:new THREE.Color().setHSL(i/sphereCount,0.65,0.68), roughness:0.2, metalness:0.1 });
             const mesh = new THREE.Mesh(geometry, mat);
-            mesh.position.set((Math.random()-0.5)*4, 1.5+Math.random()*4, (Math.random()-0.5)*1.5);
+            mesh.position.set((Math.random()-0.5)*3.5, 1.5+Math.random()*3, (Math.random()-0.5)*1.3);
             spheres.push({ mesh, velocity:new THREE.Vector3(0,-0.05-Math.random()*0.05,0),
                 angularVelocity:new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).multiplyScalar(0.04),
-                radius:0.96 });
+                radius:0.48 });
             scene.add(mesh);
         }
     }
@@ -513,9 +458,9 @@ document.addEventListener('DOMContentLoaded', () => {
             s.mesh.rotation.x += s.angularVelocity.x;
             s.mesh.rotation.y += s.angularVelocity.y;
             if (s.mesh.position.y < 0.5)  { s.mesh.position.y=0.5;  s.velocity.y*=-0.55; }
-            if (s.mesh.position.y > 6.0)  { s.mesh.position.y=6.0;  s.velocity.y*=-0.6; }
-            if (Math.abs(s.mesh.position.x)>2.8){ s.mesh.position.x=Math.sign(s.mesh.position.x)*2.8; s.velocity.x*=-0.6; }
-            if (Math.abs(s.mesh.position.z)>1.5){ s.mesh.position.z=Math.sign(s.mesh.position.z)*1.5; s.velocity.z*=-0.6; }
+            if (s.mesh.position.y > 5.5)  { s.mesh.position.y=5.5;  s.velocity.y*=-0.6; }
+            if (Math.abs(s.mesh.position.x)>2.6){ s.mesh.position.x=Math.sign(s.mesh.position.x)*2.6; s.velocity.x*=-0.6; }
+            if (Math.abs(s.mesh.position.z)>1.3){ s.mesh.position.z=Math.sign(s.mesh.position.z)*1.3; s.velocity.z*=-0.6; }
         });
         for (let i=0;i<spheres.length;i++){
             for (let j=i+1;j<spheres.length;j++){
