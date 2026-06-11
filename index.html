@@ -22,15 +22,16 @@
     <!-- 뮤직 플레이어 -->
     <div class="music-float">
         <div class="cd-player-panel">
-            <h2 class="pixel-text">BGM</h2>
-            <div class="cd-player">
-                <canvas id="cd-canvas" width="104" height="104"></canvas>
+            <div class="cd-body">
+                <div class="cd-speaker-grid"></div>
+                <canvas id="cd-canvas" width="80" height="80"></canvas>
+                <div class="cd-strip"></div>
             </div>
-            <button id="music-toggle" class="retro-btn">PLAY</button>
-            <audio id="bgm" loop>
-                <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-            </audio>
+            <button id="music-toggle" class="retro-btn cd-btn">PLAY</button>
         </div>
+        <audio id="bgm" loop>
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        </audio>
     </div>
 
     <!-- 감정 분석기 -->
@@ -42,11 +43,13 @@
                 <button type="button" id="stop-emotion" class="retro-btn" style="display:none;">SCAN OFF</button>
                 <button type="button" id="capture-emotion" class="retro-btn" style="display:none;">CAPTURE</button>
             </div>
-            <canvas id="radar-canvas" width="250" height="250" style="display:none; max-width:100%;"></canvas>
-            <div id="captured-emotion-display" class="captured-emotion-display" style="display:none;">
-                <canvas id="emotion-capture-canvas" width="250" height="250" style="max-width:100%;"></canvas>
-                <p id="captured-emotion-result" class="pixel-text" style="color:#333; margin-top:8px; font-size:10px;"></p>
-                <button type="button" id="rescan-emotion" class="retro-btn" style="margin-top:8px;">RESCAN</button>
+            <div class="radar-area">
+                <canvas id="radar-canvas" width="240" height="240" style="display:none;"></canvas>
+                <div id="captured-emotion-display" class="captured-emotion-display" style="display:none;">
+                    <canvas id="emotion-capture-canvas" width="240" height="240"></canvas>
+                    <p id="captured-emotion-result" class="pixel-text" style="color:#333; margin-top:8px; font-size:10px;"></p>
+                    <button type="button" id="rescan-emotion" class="retro-btn" style="margin-top:8px;">RESCAN</button>
+                </div>
             </div>
             <p id="emotion-recommendation" class="emotion-rec" style="display:none;"></p>
             <div id="webcam-container" style="display:none;"></div>
@@ -65,22 +68,12 @@
             <div class="mac-title">PIXEL GACHA</div>
         </div>
 
-        <!-- 헤더 -->
-        <div class="window-header">
-            <h1 class="pixel-text">PIXEL GACHA</h1>
-            <nav>
-                <a href="#machine" class="pixel-text">PLAY</a>
-                <a href="#about" class="pixel-text">INFO</a>
-            </nav>
-        </div>
-
         <div class="window-content">
-
             <!-- 왼쪽: 버튼들 -->
             <section class="face-capture-panel">
                 <h2 class="pixel-text">CAPTURE YOUR FACE</h2>
                 <div class="capture-controls">
-                    <p id="loading-status" class="pixel-text ko-text" style="font-size:7px;">AI loading...</p>
+                    <p id="loading-status" class="pixel-text" style="font-size:7px;">AI loading...</p>
                     <button id="enable-camera" class="retro-btn" disabled>ON CAMERA</button>
                     <button id="take-photo" class="retro-btn" style="display:none;" disabled>TAKE PHOTO</button>
                     <input type="file" id="upload-photo" accept="image/*" style="display:none;">
@@ -109,12 +102,8 @@
                             <div class="machine-body">
                                 <div class="machine-logo">GACHA</div>
                                 <div class="machine-left">
-                                    <div class="exit-door">
-                                        <div class="exit-door-inner"></div>
-                                    </div>
-                                    <div class="exit-slot">
-                                        <div class="chute" id="chute"></div>
-                                    </div>
+                                    <div class="exit-door"><div class="exit-door-inner"></div></div>
+                                    <div class="exit-slot"><div class="chute" id="chute"></div></div>
                                 </div>
                                 <div class="machine-right">
                                     <div class="coin-slot-area">
@@ -139,24 +128,19 @@
                 </div>
             </div>
 
-            <!-- 오른쪽: 얼굴 미리보기 -->
+            <!-- 오른쪽: 얼굴 미리보기 (원 1개) -->
             <div class="face-preview-panel">
-                <div id="face-preview-container" class="face-preview-container">
-                    <div id="face-preview" class="face-preview"></div>
-                    <img id="captured-face" style="display:none; width:90px; height:90px; border-radius:50%; border:3px solid #ccc; margin: 0 auto 8px; display:block;">
-                    <p id="captured-emotion-text" class="pixel-text" style="display:none; color:#555; font-size:7px; margin-top:6px; text-align:center;"></p>
-                </div>
+                <div class="face-preview" id="face-preview"></div>
+                <img id="captured-face" style="display:none; width:90px; height:90px; border-radius:50%; border:3px solid #ccc; margin:0 auto; display:block;">
+                <p id="captured-emotion-text" class="pixel-text" style="display:none; color:#555; font-size:7px; margin-top:6px; text-align:center;"></p>
             </div>
-
         </div>
     </div>
 
-    <!-- 푸터 -->
     <footer class="main-footer">
         <p class="pixel-text">&copy; 2026 PIXEL GACHA SIMULATOR &nbsp; made by @suplztm</p>
     </footer>
 
-    <!-- 결과 모달 -->
     <div id="result-modal" class="modal">
         <div class="modal-content">
             <div id="capsule-result-container" class="capsule-result-container">
