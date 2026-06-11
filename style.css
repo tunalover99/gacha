@@ -368,17 +368,23 @@ body {
 
 /* 오른쪽: 얼굴 미리보기 */
 .face-preview-panel {
-  width: 130px; flex-shrink: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
+  width: 120px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-left: -10px;
 }
 
-/* 원 하나만 — face-preview는 사진 없을 때, captured-face는 사진 있을 때 */
+/* face-preview: 사진 없을 때만 보임 */
 .face-preview {
   width: 90px; height: 90px;
-  border: 3px solid #cccccc; background: #e8e8e8;
-  border-radius: 50%; overflow: hidden;
-  background-size: cover; background-position: center;
+  border: 3px solid #cccccc;
+  background: #e8e8e8;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
 }
 
 .retro-btn {
